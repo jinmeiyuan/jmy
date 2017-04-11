@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>导入基站信息</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/importManager.css" />
+
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+</head>
+<body>
+<div id="main-div">
+	<div id="table-div">
+		<table id="data-table">
+		</table>
+	</div>
+	<div id="button-div">
+		<div id="file-div">
+			<input type="file" id="files" value="选择文件" onchange="readExcel()" />选择文件
+		</div>	
+		<input id="button-input" type="button" value="导入表格"  onclick="sendExcel()" />
+		<p id="kind-p"></p>
+	</div>
+</div>
+<div id="select-div">
+	<p>选择兴趣点类型</p>
+	<select id="kind-select" onchange="changeSelect()">
+	</select>
+</div>
+<div id="shade-div" > 		
+</div>
+	<div class="progressbar">
+	<div class="bar"><p>50%</p></div>
+
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var importurl = localStorage.getItem("importurl");
+	var ver = localStorage.getItem("ver");
+	var sendArr = [];
+	var kindId = "";
+	var poiKindArr = [];
+	var kindName = [];
+	$(function(){
+		getPoiKindFun();
+				
+	});
+
+	function changeSelect(){
+		kindId = $("#kind-select option:selected").val();
+		kindName = $("#kind-select option:selected").text();
+		$("#select-div").hide();
+		$("#main-div").show();
+		$("#kind-p").text("当前选择类型："+kindName);
+		addToTable(kindName);
+	}
+
+	function getPoiKindFun(){
+		var xmlStr = RWPOIKindGet(sessionId,ver);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					selecetKind = null;
+					var poik = eval('('+jsonObj.msgbody+')');
+					for(var i = 0; i<poik.length ; i++){
+						poiKindArr.push(poik[i].poikind);
+						var aCopy = poik[i].poikind.PKName;
+						if(aCopy.indexOf("基站")!=-1 || aCopy.indexOf("通道门")!=-1 || aCopy.indexOf("通话柱")!=-1 || aCopy.indexOf("道口") != -1 || aCopy.indexOf("视频柱") != -1 || aCopy.indexOf("桥槽") != -1){
+							jQuery('<option value="'+poik[i].poikind.PKID+'">'+poik[i].poikind.PKName+'</option>').appendTo("#kind-select");
+						}
+						
+					}	
+					$("#kind-select").val("");				
+				}
+			}
+		});
+	}
+
+	function addToTable(){
+		if(kindName.indexOf("基站") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>线路名称</th><th>基站名称</th><th>公里标</th><th>经度</th><th>纬度</th><th>备注</th></tr>');			
+		}
+		else if(kindName.indexOf("通道门") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>通道门名称编号</th><th>线名</th><th>公里标</th><th>经度</th><th>纬度</th><th>上下行</th><th>主要作业项目</th><th>备注</th></tr>');
+		}
+		else if(kindName.indexOf("通话柱") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>通话柱名称</th><th>线路名称</th><th>公里标</th><th>经度</th><th>纬度</th><th>备注</th></tr>');
+		}
+		else if(kindName.indexOf("道口") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>线名</th><th>道口名称</th><th>公里标</th><th>经度</th><th>纬度</th><th>备注</th></tr>');
+		}
+		else if(kindName.indexOf("视频柱") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>线路名称</th><th>摄像头名称</th><th>公里标</th><th>经度</th><th>纬度</th><th>备注</th></tr>');
+		}
+		else if(kindName.indexOf("桥槽") != -1){
+			$("#data-table").append('<tr><th>序号</th><th>线名</th><th>桥槽所在行别</th><th>桥梁名称</th><th>桥中心里程</th><th>桥中心经度</th><th>桥中心纬度</th><th>桥槽长度</th><th>备注</th></tr>');
+		}
+		addEmpty($("#data-table tr th").length);
+	}
+
+	function addEmpty(num){
+		var trlength = $("#data-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#data-table").append('<tr id="empty'+trlength+'">');
+			for(var i = 0; i< num; i++){
+				if(i == num-1){
+					$("#empty"+trlength).append('<td class="right-td"></td>');
+				}
+				else{
+					$("#empty"+trlength).append('<td></td>');
+				}
+				
+			}
+			$("#data-table").append('</tr>');
+		}
+	}
+
+	function readExcel(){
+		var formdata = new FormData();
+		if($('input[type = file]')[0].files.length == 0){
+			alert("请选择一个文件上传");
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[0].files[0]);
+		$.ajax({
+			url:importurl,
+			type:"POST",
+			data:formdata,
+			processData:false,
+			contentType:false,
+			success:function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					clearTable();
+					sendArr=[];
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for(var i = 0;i < msgObj.length ;i++){
+						createTable(msgObj[i]);
+					}
+					if(kindName.indexOf("基站") != -1){
+						addToTable2(0);
+					}
+					else if(kindName.indexOf("通道门") != -1){
+						addToTable2(1);
+					}
+					else if(kindName.indexOf("通话柱") != -1){
+						addToTable2(2);
+					}
+					else if(kindName.indexOf("道口") != -1){
+						addToTable2(3);
+					}
+					else if(kindName.indexOf("视频柱") != -1){
+						addToTable2(4);
+					}
+					else if(kindName.indexOf("桥槽") != -1){
+						addToTable2(5);
+					}
+
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove();
+	}
+
+	function createTable(item){
+		if((item.序号 || item.编号 || "") == "")  {
+			return;
+		}
+		
+		var obj = {
+			id : newGuid(),
+			name : item.基站机房名称 || item.通道门名称编号 || item.通话柱名称 || item.道口名称 || item.摄像头名称 || item.桥梁名称 || "",
+			kind : kindId,
+			linename : item.线路名称 || item.线名 || "",
+			glb : item.公里标 || item.桥中心里程 || "",
+			x : item.经度 || item.桥中心经度 || "",
+			y : item.纬度 || item.桥中心纬度 || "",
+			direct : item.上下行 || item.桥槽所在行别 || "",
+			remark : item.备注 || "",
+			reservea : item.主要作业项目 || item.桥槽长度 ||  "",
+			reserveb : ""
+		}
+		sendArr.push(obj);	
+	}
+
+	function addToTable2(num){
+		switch (num){
+			case 0:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.linename+'</td><td>'+obj.name+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td class="right-td">'+obj.remark+'</td></tr>');				
+				}
+				break;
+			}
+			case 1:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.name+'</td><td>'+obj.linename+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td>'+obj.direct+'</td><td>'+obj.reservea+'</td><td class="right-td">'+obj.remark+'</td></tr>');
+				}
+				break;
+			}
+			case 2:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append($("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.name+'</td><td>'+obj.linename+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td class="right-td">'+obj.remark+'</td></tr>'));
+				}
+				break;
+			}
+			case 3:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.linename+'</td><td>'+obj.name+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td class="right-td">'+obj.remark+'</td></tr>');
+				}
+				break;
+			}
+			case 4:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.linename+'</td><td>'+obj.name+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td class="right-td">'+obj.remark+'</td></tr>');
+				}
+				break;
+			}
+			case 5:{
+				for (var i = 0; i < (sendArr.length || 14); i++) {
+					var obj = sendArr[i];				
+					$("#data-table").append('<tr><td>'+(i+1)+'</td><td>'+obj.linename+'</td><td>'+obj.direct+'</td><td>'+obj.name+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td>'+obj.reservea+'</td><td class="right-td">'+obj.remark+'</td></tr>');
+				}
+				break;
+			}
+		}
+		
+		addEmpty($("#data-table tr th").length);
+	}
+
+	/****************导入表格****************/
+	function sendExcel(){
+		if(sendArr.length == 0){
+			return;
+		}
+		var successNum = 0;
+		$("#shade-div").show();
+		$(".progressbar").show();
+		$(".progressbar .bar").width("0%");
+		$(".progressbar .bar p").val("0%");
+
+		addWork(0,0);
+	}
+
+	function addWork(num,successNum){
+		$(".progressbar .bar").width((num+1)/(sendArr.length));
+		$(".progressbar .bar p").val((num+1)+"/"+(sendArr.length));
+		var xmlStr = RWPoiAdd(sessionId,ver,sendArr[num]);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0" ){
+					successNum += 1;
+				}	
+				else{
+					layer.open({
+						title:false,
+						content:"第"+num+"条数据导入失败："+jsonObj.error,
+						offset:[200,0]			
+					});
+					hideProgress();
+				}
+
+				if(num == sendArr.length-1){
+					layer.open({
+						title:false,
+						content:"导入"+successNum+"条数据",
+						offset:[200,0]
+					});
+					hideProgress();
+				}else{
+					addWork(num+1,successNum);
+				}	
+
+				
+			}				
+		});
+	}
+
+	function hideProgress(){
+		$("#shade-div").hide();
+		$(".progressbar").hide();
+	}
+
+</script>
+</body>
+</html>

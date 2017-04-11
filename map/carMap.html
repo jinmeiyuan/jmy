@@ -1,0 +1,91 @@
+<body>
+<div id="my-carmap-div" class="my-window">
+	<div id="my-carmap-title" class="my-title">
+		<p></p>
+		<img src="../css/image/段控作业图标/关闭.png" class="my-window-close">
+	</div>
+	<div id="my-carmap-content">
+		<div id="map">
+		</div>
+		<div id="my-carmap-table-div">
+			<table id="my-carmap-table"></table>
+		</div>
+	</div>
+	
+	
+</div>
+<script type="text/javascript">
+	var itemmainCar;
+	var carmapa = new carmap();
+	
+	function mainCarMap(){
+		
+	};
+
+	mainCarMap.prototype.carMapGetTable = function(item) {		
+		var xmlStr = RWGetPos(sessionId,ver,item);
+		console.log(xmlStr);
+		$.ajax({
+			url : window.global.requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var poslist = [];
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.poslist.length; i++) {
+						msg.poslist[i].pos.x = Number(msg.poslist[i].pos.x)/1000000;
+						msg.poslist[i].pos.y = Number(msg.poslist[i].pos.y)/1000000;
+						poslist.push(msg.poslist[i].pos);
+					}	
+					$("#my-carmap-table").bootstrapTable("load",poslist);
+					carmapa.createLine(poslist);
+				}				
+		
+				else{
+					alert("查询轨迹失败："+jsonObj.error);
+				}
+				$("#loadingModal").modal("hide");
+	 		}
+		});
+	}
+	
+	$(function(){
+		itemmainCar = new mainCarMap();
+		$("#my-carmap-table").bootstrapTable({
+			striped : true,
+			columns:[{
+				title : "序号",
+				formatter: function(value,row,index){
+					return index+1;
+				},
+				width:40
+			},{
+				field : "gtime",
+				title : "定位时间",
+				width : 130
+			},{
+				field :"x",
+				title : "经度",
+				width : 50
+			},{
+				field :"y",
+				title : "纬度",
+				width : 50
+			}],
+			onDblClickRow:function(row){
+				try{
+					carmapa.view.setCenter(ol.proj.fromLonLat(wgs84togcj02(row.x,row.y)));
+				}
+				catch(e){
+					alert("公里标格式不正确");
+				}
+				
+			}
+		});
+	});
+</script>
+
+</body>

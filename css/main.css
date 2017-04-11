@@ -1,0 +1,170 @@
+body,html{
+	padding: 0;
+	border: 0;
+	margin: 0;
+	height: 100%;
+	overflow: hidden;
+}
+
+#main-div{
+	width: 100%;
+	height: 100%;
+	margin: 0;
+}
+
+#top-div {
+	width: 100%;
+	height: 40px;
+	background-color: #7b96f6;
+}
+
+#top-div p{
+	color: #FFFFFF;
+	font-family: "汉仪意宋","宋体";
+	font-size: 20px;
+	line-height: 40px;
+	vertical-align: middle;
+	margin: 0px;
+	padding-left: 220px;
+}
+
+#middle-div {
+	width: 100%;
+	height: 100%;
+}
+
+#left-div {
+	width: 15%;
+	height: 100%;
+	display: inline;
+	float: left;
+	margin-right: 10px;
+}
+
+#container{
+	width: 85%;
+	height: 100%;
+	border: 0px solid gray;
+	display: inline;
+	float: left;
+}
+
+.anchorBL{
+	display: none;
+}
+
+a[id^='linkbutton']{
+	width: 98%;
+}
+
+.accordion-header{
+	height: 30px;
+	line-height: 100px;
+	padding: 0px;
+	display: table-cell;
+	vertical-align: middle;	
+}
+
+/*************************登**录**界**面**样**式*************************/
+
+#bg1{
+
+	width: 100%;
+	height: 100%;
+	background: url('index/bg.jpg') no-repeat center center;
+}
+
+#bg2{
+	display: inline;;
+	float: left;
+	width: 1263px;
+	height: 100%;
+	background: url('index/底.png') no-repeat center 120px;
+}
+
+#loginDiv{
+	position: absolute;
+	display: inline;
+	float: left;
+	width: 408px;
+	height: 100%;
+	background: url('index/底2.png') no-repeat center 85px;
+	margin-left: 660px;
+	background-size: 100%;
+}
+	
+#top-login{
+	position: relative;
+	top: 80px;
+	margin-left: 24px;
+	width: 360px;
+	height: 60px;
+	background-color: #28186c;
+}
+
+#top-login .txt{
+	color: #FFFFFF;
+	font-family: "宋体","楷体";
+	font-size: 24pt;
+	text-align: center;
+	line-height: 60px;
+	margin-bottom: 30px;
+}
+
+#loginDiv p[class$="input"]{
+	border: 1px solid #d9d9d9;
+	background-color: #f8fbfb;
+	margin: 30px 20px;
+	position:relative;
+	height: 49px;
+	font-size: 0px;
+}
+
+#top-login p[class$="input"] img{
+	margin: 0px;
+	vertical-align: middle;
+	width: 48px;
+	height: 48px;
+}
+
+#top-login p[class$="input"] input{
+	vertical-align: middle;
+	top: 0px;
+	padding: 0px;
+	margin: 0px;
+	height: 48px;
+	width: 240px;
+	border: 0px;
+	background-color: #f8fbfb;
+	font-size: 12pt;
+}
+
+#top-login .password-remember{
+	margin: 20px 20px 31px;
+	position:relative;
+	height: 24px;
+	width: 100%;
+}
+
+#top-login .password-remember img{
+	height: 18px;
+	width: 18px;
+	vertical-align: middle;
+}
+
+#top-login .password-remember span{
+	vertical-align: middle;
+	padding-left: 10px;
+	color: #999;
+}
+
+#top-login #submit{
+	height: 50px;
+	margin:0px 20px 40px;
+	width: 90%;
+	background-color: #d92000;
+	border: 0px;
+	color: #FFFFFF;
+	font-family: "黑体";
+	font-size: 20pt;
+}

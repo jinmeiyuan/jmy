@@ -1,0 +1,19 @@
+﻿.datagrid-btn-separator {
+  float: left;
+  height: 24px;
+  border-left: 1px solid #282828;
+  border-right: 1px solid #282828;
+  margin: 2px 1px;
+}
+
+.datagrid-footer td {
+  border-width: 0 1px 1px 0;
+  border-style:solid;
+  margin: 0;
+  padding: 0;
+}
+
+.datagrid-ftable {
+  color:  #282828;
+  border-collapse: separate;
+}

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>分组管理</title>
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css" />
+	
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+	<link rel="stylesheet" type="text/css" href="../css/md/groupManager.css" />
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+</head>
+<body>
+	<div id="shade-div" > 		
+	</div>
+	<div id="mainDiv">
+		<div id="title-div">
+			<p>分组管理</p>
+			<div id="getGroupBtn"><img src="../css/image/icon/refresh.png"/><a>刷新</a></div>
+		</div>
+		<div id="top-div">
+			<div id="addGroupBtn" class="button-div"><img src="../css/image/icon/add.png"/><a>添加</a></div>
+			<div id="editGroupBtn" class="button-div"><img src="../css/image/icon/edit.png"/><a>修改</a></div>
+			<div id="delGroupBtn" class="button-div"><img src="../css/image/icon/delete.png"/><a>删除</a></div>
+		</div>
+		<div id="tt-div">
+			<ul class="easyui-tree" id="tt">
+       		
+    		</ul>
+		</div>
+	</div>
+	<div id="person-div">
+		<div id="title-div2">
+			<p>当前分组：</p>
+			<div id="person-button-div">
+				<div id="getPersonBtn"><img src="../css/image/icon/refresh.png"/><a>刷新</a></div>
+				<div id="addPersonBtn"><img src="../css/image/icon/add.png"/><a>添加</a></div>
+				<div id="editPersonBtn"><img src="../css/image/icon/edit.png"/><a>修改</a></div>
+				<div id="delPersonBtn"><img src="../css/image/icon/delete.png"/><a>删除</a></div>
+				<div id="importBtn"><a>人员导入</a></div>
+			</div>		
+		</div>
+		<div id="table-div">
+			<table id="one-table" class="one-table">
+				<tr style="height:38px">
+					<th width="80px">序号</th>
+					<th>姓名</th>
+					<th>所属分组</th>
+					<th>通信卡号</th>
+					<th>角色</th>
+				</tr>				
+			</table>
+		</div>
+	</div>
+	<div id="button-div">
+		<img src="../css/image/段控作业图标/关闭.png" class="closeBtn1" / >
+		<div id="file-div">
+			<input type="file" id="files" value="选择文件" onchange="readExcel()" />读取文件
+		</div>	
+		<input id="button-input" type="button" value="导入表格"  onclick="sendExcel()" />
+		<table id="two-table" class="one-table">
+			<tr>
+				<th width="50px">序号</th>
+				<th>姓名</th>
+				<th>所属分组</th>
+				<th>通信卡号</th>
+				<th>角色</th>
+			</tr>
+		</table>
+	</div>
+	<div id="hidden-div">
+		<div id="window-top">
+			<p id="window-p">修改分组</p>
+			<img src="../css/image/段控作业图标/关闭.png" class="closeBtn"></img>
+		</div>
+		<div id="window-content">
+			<p>分组名称</p>
+			<input type="text" id="groupnameTxt" />
+			<div id="button-div2">
+				<button id="sumbitBtn">确认</button>
+				<button class="closeBtn">关闭</button>
+			</div>
+			
+		</div>		
+	</div>
+	<div id="person-hidden-div">
+		<div id="person-window-top">
+			<p id="person-window-top-p">添加人员</p>
+			<img src="../css/image/段控作业图标/关闭.png" id="person-window-close" class="closeBtn" / >
+		</div>
+		<div id="person-window-content">
+			<p>姓名</p>
+			<input type="text" id="person-name-input" />
+			<p>手机号码</p>
+			<input type="text" id="person-mobile-input" />
+			<p>角色</p>
+			<select id="person-role-select"></select>
+		</div>
+		<div id="person-window-button">
+			<div class="button-style closeBtn"><img src="../css/image/icon/back.png" /><a>关闭</a></div>
+			<div class="button-style" id="person-submit"><img src="../css/image/icon/ok.png" /><a>确认</a></div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var selTr = null;   //选中的行;
+	var sessionid = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var groupArr = JSON.parse(localStorage.getItem("groupArr"));
+	var groupTreeArr = JSON.parse(localStorage.getItem("groupTreeArr"));
+	var selectGroup;
+	var roleArr = [];  // 角色
+	var employeeArr = []; //人员
+	var selectPerson ;
+	var importurl = localStorage.getItem("importurl");
+	var sendArr = [];
+	var successNum = 0;
+	var errorNum = "";
+	$(function(){
+		if(groupTreeArr == null  || groupTreeArr.length == 0){
+			groupArr = [];
+			groupTreeArr = [];
+			getGroup();
+		}
+		else{
+			getGroupTree();
+		}
+
+		$("#one-table tr td").bind('click',function(){
+			this.parentNode.Style('backgroundColor','#00FF00');
+			selTr = this;
+		});
+
+		$("#getGroupBtn").bind('click',function(){
+			groupArr = [];
+			groupTreeArr = [];
+			getGroup();
+		});
+
+		$("#tt").tree({
+			onClick:function(node){
+				selectGroup = node;
+				$("#title-div2 p").text("当前分组:"+selectGroup.groupname);
+				clearTable();
+				addToTable();
+			}
+		});
+
+		$("#addGroupBtn").click(function(){
+			addGroup();
+		}).mouseover(function(){
+			$("#addGroupBtn").removeClass('button-div').addClass('button-select-div');
+		}).mouseout(function(){
+			$("#addGroupBtn").removeClass('button-select-div').addClass('button-div');
+		});
+
+		$("#editGroupBtn").click(function(){
+			editGroup();
+		}).mouseover(function(){
+			$("#editGroupBtn").removeClass('button-div').addClass('button-select-div');
+		}).mouseout(function(){
+			$("#editGroupBtn").removeClass('button-select-div').addClass('button-div');
+		});
+
+		$('.closeBtn').bind('click',function(){
+			closeWin();;
+		});
+		
+
+		$("#sumbitBtn").bind('click',function(){
+			startEditGroup();
+		});
+
+		$("#delGroupBtn").click(function(){
+			delGroup();
+		}).mouseover(function(){
+			$("#delGroupBtn").removeClass('button-div').addClass('button-select-div');
+		}).mouseout(function(){
+			$("#delGroupBtn").removeClass('button-select-div').addClass('button-div');
+		});
+
+		addEmpty();
+		getRole();
+		getEmployee();
+
+		$("#getPersonBtn").click(function(){
+			getEmployee();
+		});
+
+		$("#addPersonBtn").click(function(){
+			addPersonFun();
+		});
+
+		$("#person-submit").click(function(){
+			summitPersonFun();
+		});
+
+		$("#editPersonBtn").click(function(){
+			editPersonFun();
+		});
+
+		$("#delPersonBtn").click(function(){
+			delPersonFun();
+		});
+
+		$("#importBtn").click(function(){
+			importFun();
+		});
+
+		$(".closeBtn1").click(function(){
+			closeWin();
+		});
+	});
+
+	function importFun(){
+		$("#button-div").css("display","block");
+		$("#shade-div").css("display","block");
+		addEmpty2();
+	}
+
+	/**读取excel文件**/
+	function readExcel(){
+		var formdata = new FormData();
+		if($('input[type = file]')[0].files.length == 0){
+			alert("请选择一个文件上传");
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[0].files[0]);
+		$.ajax({
+			url : importurl,
+			type : "POST",
+			data : formdata,
+			processData : false,
+			contentType : false,
+			success : function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					clearTable2();
+					sendArr = [];
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						var item = {
+							id : newGuid(),
+							name : msgObj[i].姓名,
+							groupname : "",
+							mobile : "",
+							rolename : ""
+						}
+
+						for (var key in msgObj[i]) {
+							if(key.indexOf("分组") != -1){
+								item.groupname = eval("msgObj[i]."+key);
+							}
+							if(key.indexOf("卡号") != -1){
+								item.mobile = eval("msgObj[i]."+key);
+							}
+							if(key.indexOf("角色") != -1){
+								item.rolename = eval("msgObj[i]."+key);
+							}
+						}
+
+						item.groupid = getGroupIdByName(item.groupname,groupArr);
+						if(item.groupid == ""){
+							item.groupname += "(分组不存在)";
+						}
+
+						item.roleid = getRoleIdByName(item.rolename,roleArr);
+
+						if(item.roleid == ""){
+							item.rolename += "(角色不存在)";
+						}
+						/**var keys = [];
+						var values = [];
+						for (var key in msgObj[i]) {
+							keys.push(key);
+							values.push(msgObj[i].key);
+							alert(eval("msgObj[i]."+key));
+						}**/
+						sendArr.push(item);
+					}
+					addToTable2(sendArr);
+				}
+			}
+		})
+	}
+
+	/**导入人员**/
+	function sendExcel(){
+		if(sendArr.length == 0){		
+			return;
+		}
+		successNum = 0;
+		errorNum ="";
+		for (var i = 0; i < sendArr.length; i++) {
+			if(sendArr[i].groupid == ""){
+				alert("第["+(i+1)+"]行人员分组不存在");
+				return;
+			}
+			if(sendArr[i].roleid == ""){
+				alert("第["+(i+1)+"]行人员角色不存在");
+				return;
+			}
+		}
+		importPersonFun(0);
+	}
+
+	function importPersonFun(num){
+		var xmlStr = RWEmployeeAdd(sessionid,ver,sendArr[num]);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success : function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					successNum += 1;
+				}
+				else{
+					errorNum += (num+1)+"";
+					if(num !== sendArr.length-1){
+						errorNum += ","
+					}
+				}
+				if(num != sendArr.length-1){
+					importPersonFun(num+1);
+				}
+				else{
+					if(successNum != sendArr.length){
+						alert("成功导入"+successNum+"条数据,其中第"+errorNum+"条导入失败");
+					}
+					else{
+						alert("全部导入成功");
+					}
+				}
+			}
+		});
+	}
+
+	function closeWin(){
+		$("#hidden-div").css("display","none");
+		$("#shade-div").css("display","none");
+		$("#person-hidden-div").hide();
+		$("#button-div").css("display","none");
+	}
+
+	/**获取角色**/
+	function getRole(){
+		var xmlStr = RWRoleGet(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						roleArr.push(msgObj[i].role);
+					}
+				}
+				appendRole();
+			}
+		});
+	}
+
+	function appendRole(){
+		for (var i = 0 ; i < roleArr.length; i++) {
+			jQuery('<option value="'+roleArr[i].roleid+'">'+roleArr[i].rolename+'</option>').appendTo("#person-role-select");
+		}
+	}
+
+
+	/**清空表格**/
+	function clearTable(){
+		$("#one-table tr:not(:first)").remove("");
+	}
+
+	function clearTable2(){
+		$("#two-table tr:not(:first)").remove("");
+	}
+
+	function getEmployee(){
+		var xmlStr = RWEmployeeGet(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					employeeArr = [];
+					selectPerson = null;
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].employee.groupno = getGroupNoById(msgObj[i].employee.groupid);
+						employeeArr.push(msgObj[i].employee);
+					}
+					clearTable();
+					addToTable();
+				}
+				else{
+					alert("获取员工失败："+jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function getGroupNoById(groupid){
+		for(var i=0; i < groupArr.length;i++){
+			if(groupArr[i].groupid == groupid){
+				return groupArr[i].groupno;
+			}
+		}
+	}
+
+	function addToTable(){
+		if(selectGroup != null ){
+			for(var i = 0;i<employeeArr.length;i++){
+				try{
+					if(employeeArr[i].groupno.indexOf(selectGroup.groupno) != -1 ){
+					var tabLength = $("#one-table tr").length;
+					var groupname = getGroupNameById(employeeArr[i].groupid);
+					var rolename = getRoleNameById(employeeArr[i].roleid);
+					$("#one-table").append('<tr id="'+employeeArr[i].pid+'" onclick="selectedFun(\''+employeeArr[i].pid+'\')"><td>'+tabLength+'</td><td>'+employeeArr[i].pname+'</td><td>'+groupname+'</td><td>'+
+						employeeArr[i].mobile+'</td><td>'+rolename+'</td>');
+				}
+				}catch(err){
+				}				
+			}	
+		}
+		addEmpty();		
+	}
+	function addToTable2(){
+		for(var i = 0;i<sendArr.length;i++){
+			$("#two-table").append('<tr id="'+sendArr[i].id+'"><td>'+(i+1)+'</td><td>'+sendArr[i].name+'</td><td>'+sendArr[i].groupname+'</td><td>'+
+						sendArr[i].mobile+'</td><td>'+sendArr[i].rolename+'</td>');
+		}	
+		addEmpty2();		
+	}
+
+	function selectedFun(employId){
+		if(selectPerson != null){
+			$("#"+selectPerson.pid).removeClass("selecteding");
+		}
+		
+		for (var i = 0;i < employeeArr.length;i++) {
+			if(employeeArr[i].pid == employId){
+				selectPerson = employeeArr[i];
+				$('#'+employId).addClass("selecteding");
+				break;
+			}
+		}
+	}
+
+	function getGroupNameById(gid){
+		var result = "";
+		for(var i=0; i < groupArr.length;i++){
+			if(groupArr[i].groupid == gid){
+				result = groupArr[i].groupname;
+				break;
+			}
+		}
+		return result;
+	}
+
+	function getRoleNameById(roleid){
+		var result = "";
+		for(var i=0; i<roleArr.length;i++){
+			if(roleArr[i].roleid == roleid){
+				result = roleArr[i].rolename;
+				break;
+			}
+		}
+		return result;
+	}
+
+	function addEmpty(){
+		var trlength = $("#one-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#one-table").append('<tr><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+	function addEmpty2(){
+		var trlength = $("#two-table tr").length;
+		for(trlength;trlength<13;trlength++){
+			$("#two-table").append('<tr><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+	function delGroup(){
+		if(selectGroup != null){
+			if(confirm("确定删除选中分组?")){				
+				var item = {groupid:selectGroup.groupid}
+				var xmlStr = RWGroupDel(sessionid,ver,item);
+				$.ajax({
+					url:requrl,
+					type:"POST",
+					dataType:"json",
+					data:xmlStr,
+					success:function(data) 
+					{
+						var jsonObj = eval(data);
+						if(jsonObj.result == "0"){
+							selectGroup = null;
+							alert("成功删除分组");
+						}
+						else{
+							alert(jsonObj.error);
+						}
+					}
+				});	
+			}
+		}
+	}
+
+	/**添加分组**/
+	function addGroup(){
+		if(selectGroup == null){
+			alert("请指定需要在何分组下添加新分组");
+			return;
+		}
+		else{
+			$("#groupnameTxt").val("");
+			$("#window-p").text("添加分组");
+			$("#hidden-div").css("display","block");
+			$("#shade-div").css("display","block");
+		}
+	}
+
+	/**点击修改分组的确定按钮**/
+	function startEditGroup(){
+		if($("#window-p").text() == "修改分组"){
+			if($("#groupnameTxt").val() == selectGroup.groupname  || $("#groupnameTxt").val() == ""){
+			}
+			else{
+				var item = {
+					groupid:selectGroup.groupid,
+					groupname:$("#groupnameTxt").val(),
+					groupno : selectGroup.groupno
+				}
+				var xmlStr = RWGroupEdit(sessionid,ver,item);
+				$.ajax({
+					url:requrl,
+					type:"POST",
+					dataType:"json",
+					data : xmlStr,
+					success : function(data){				
+						var jsonObj = eval(data);
+						if(jsonObj.result == "0"){
+							selectGroup.groupname = $("#groupnameTxt").val();
+							$("#hidden-div").css("display","none");
+							$("#shade-div").css("display","none");
+
+							$("#tt").tree('reload',groupTreeArr);
+						
+							updateSelectGroup(groupTreeArr,selectGroup);
+
+							localStorage.setItem("groupTreeArr",JSON.stringify(groupTreeArr));
+						}
+						else{
+							alert(jsonObj.error);
+						}
+					}
+				});
+			}
+		}
+		else{
+			addToGroup();
+		}
+		
+	}
+
+	/**点击按钮添加分组**/
+	function addToGroup(){
+		if($("#groupnameTxt").val() == ""){
+			alert("分组名称不能为空");
+		}
+		else{
+			var item = {
+				groupid:newGuid(),
+				groupname:$("#groupnameTxt").val(),
+				groupno : selectGroup.groupno+getTwoNum(selectGroup.children.length+1)
+			}
+			var xmlStr = RWGroupAdd(sessionid,ver,item);
+			$.ajax({
+				url:requrl,
+				type:"POST",
+				dataType:"json",
+				data : xmlStr,
+				success : function(data){				
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						selectGroup = null;
+						item.children = [];
+						$("#hidden-div").css("display","none");
+						$("#shade-div").css("display","none");
+											
+						TranTree(groupTreeArr,item);
+						getGroupTree();
+
+						localStorage.setItem("groupTreeArr",JSON.stringify(groupTreeArr));
+					}
+					else{
+						alert(jsonObj.error);
+					}
+				}
+			});
+		}
+	}
+
+	function getTwoNum(num){
+		var result = "";
+		if(num<=9){
+			result = "0"+num;
+		}
+		else{
+			result = num+"";
+		}
+		return result;
+	}
+
+	/**修改分组**/
+	function editGroup(){
+		if(selectGroup == null){
+			alert("选择需要修改的分组");
+			return;
+		}
+		else{
+			$("#groupnameTxt").val(selectGroup.groupname);
+			$("#window-p").text("修改分组");
+			$("#hidden-div").css("display","block");
+			$("#shade-div").css("display","block");			
+		}
+	}
+
+	/***获取分组***/
+	function getGroup(){
+		var xmlStr = RWGroupGet(sessionid,ver,pid);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data : xmlStr,
+			success : function(data){				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].group.children=[];
+						groupArr.push(msgObj[i].group);
+					}
+
+					for (var j = 0; j < groupArr.length; j++) {
+						TranTree(groupTreeArr,groupArr[j]);
+					}
+					getGroupTree();
+					
+					var arr = JSON.stringify(groupArr);
+					localStorage.setItem("groupArr",arr);
+					localStorage.setItem("groupTreeArr",JSON.stringify(groupTreeArr));
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+
+	function TranTree(arr,item){
+		var sameLevel = true;
+		if(arr.length > 0){
+			if(arr[0].groupno.length < item.groupno.length){
+				sameLevel = false;
+			}
+		}
+		if(sameLevel){
+			arr.push(item);
+		}
+		else{
+			for(var i=0; i< arr.length ; i++){
+				if(item.groupno.indexOf(arr[i].groupno) != -1){
+					TranTree(arr[i].children,item);
+				}
+			}
+		}
+	}
+
+	function getGroupTree(){
+		$("#tt").tree({
+			data:groupTreeArr,
+			formatter:function(node){
+				return node.groupname;
+			}
+
+		});
+	}
+
+	function updateSelectGroup(arr,item){
+		for(var i=0;i<arr.length;i++){
+			if(item.groupno.indexOf(arr[i].groupno) != -1){
+				if(item.groupid == arr[i].groupid){
+					arr[i].groupname = item.groupname;
+				}
+				else{
+					if(arr[i].children.length != 0){
+						updateSelectGroup(arr[i].children,item);
+					}
+				}
+			}
+		}
+	}
+
+	/**********************添加人员*************************/
+	function addPersonFun(){
+		$("#person-hidden-div").show();
+		$("#shade-div").show();
+		$("#person-window-top-p").text("添加人员");
+		$("#person-name-input").val("");
+		$("#person-mobile-input").val("");
+		$("#erson-role-select").val();
+	}
+
+	function editPersonFun(){
+		if(selectPerson == null){
+			alert("请先选择人员");
+			return;
+		}
+		$("#person-hidden-div").show();
+		$("#shade-div").show();
+		$("#person-window-top-p").text("修改人员");
+		$("#person-name-input").val(selectPerson.pname);
+		$("#person-mobile-input").val(selectPerson.mobile);
+		$("#person-role-select").val(selectPerson.roleid);
+	}
+
+	function delPersonFun(){
+		if(selectPerson == null){
+			alert("请先选择人员");
+			return;
+		}
+		if(confirm("确认删除？")){
+			var item={
+				id : selectPerson.pid
+			}
+			var xmlStr = RWEmployeeDel(sessionid,ver,item);
+			$.ajax({
+				url : requrl,
+				type : "POST",
+				dataType : "json",
+				data : xmlStr,
+				success : function(data){
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						closeWin();
+						$("#"+selectPerson.pid).remove();
+						selectPerson = null;
+
+						alert("删除成功");
+					}
+					else{
+						alert(jsonObj.error);
+					}
+				}
+			})
+		}
+	}
+
+	/**点击确定按钮**/
+	function summitPersonFun(){
+		if($("#person-name-input").val() == ""){
+			alert("姓名不能为空");
+			return;
+		}
+		if(selectGroup == null){
+			alert("请先选择分组");
+			return;
+		}
+		var item={
+			id : newGuid(),
+			name : $("#person-name-input").val(),
+			groupid : selectGroup.groupid,
+			mobile : $("#person-mobile-input").val(),
+			roleid : $("#person-role-select option:selected").val() || ""
+		};
+		if($("#person-window-top-p").text() == "添加人员"){
+			addPersonFunction(item);
+		}
+		else{
+			item.id = selectPerson.pid;
+			editPersonFunction(item);
+		}
+		
+	}
+
+	function addPersonFunction(item){
+		var xmlStr = RWEmployeeAdd(sessionid,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success : function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					closeWin();
+					var addPerson ={
+						groupid : item.groupid,
+						pname : item.name,
+						pid : item.id,
+						roleid : item.roleid,
+						mobile : item.mobile,
+						groupno : selectGroup.groupno
+					}
+					employeeArr.push(addPerson);
+					clearTable();
+					addToTable();
+					selectedFun(addPerson.pid);
+					alert("添加成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		})
+	}
+
+	function editPersonFunction(item){
+		var xmlStr = RWEmployeeEdit(sessionid,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success : function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					closeWin();
+					getEmployee();
+					selectedFun(selectPerson.pid);
+					alert("修改成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		})
+	}
+
+	/**生成GUID值**/
+	function newGuid(){
+		var guid = "";
+		for(var i=0;i<32;i++){
+			var n = Math.floor(Math.random()*16.0).toString(16);
+			guid += n;
+			if((i==7 || i ==11 || i ==15 || i==19)){
+				guid += "-";
+			}
+		}
+		return guid;
+	}
+</script>
+</html>

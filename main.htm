@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>上海通信段作业监控系统</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	
+	<link rel="stylesheet" type="text/css" href="css/easyui/iconCls.css" />
+	<link rel="stylesheet" type="text/css" href="js/easyui/themes/bootstrap/easyui.css" />
+    <link rel="stylesheet" type="text/css" href="js/easyui/themes/icon.css"/>
+    <link rel="stylesheet" type="text/css" href="css/main1.css" />
+   
+    <script type="text/javascript" src="js/easyui/jquery.min.js"></script>
+    <script type="text/javascript" src="js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src = "xml/url.js"></script>
+
+	<!--<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=7bbedeb20ab10f18ffe9a8377f22d9d3"></script>-->
+</head>
+<body>
+	<div id="main-panel">
+		<div id="left-panel">
+			<img src="css/image/logo.png" id="back-img" />
+			<div id="left-top-panel"></div>
+			<div id="left-middle-panel"></div>
+			<div id="left-bottom-panel">
+				<div>
+					<p class="selectedP"><img src="css/image/menuIcon/作业监控.png" /> 作业监控</p>
+					<ul style="display: block;">
+						<li><a href="#" id="linkbutton1">段控作业</a></li>
+						<li><a href="#" id="linkbutton2">段控作业导入</a></li>
+						<li><a href="#" id="linkbutton3">作业完成查询</a></li>
+						<li><a href="#">车间控作业</a></li>
+						<li><a href="#">车间控作业导入</a></li>
+					</ul>
+				</div>
+				<div>
+					<p><img src="css/image/menuIcon/应急处置.png"> 应急处置</p>
+					<ul></ul>
+				</div>
+				<div>
+					<p><img src="css/image/menuIcon/值班干部.png"> 值班干部</p>
+					<ul>
+						<li><a href="#" id="linkbutton31">值班管理</a></li>
+					</ul>
+				</div>
+				<div>
+					<p><img src="css/image/menuIcon/车辆信息.png"> 车辆信息</p>
+					<ul>
+						<li><a href="#" id="linkbutton41">车辆管理</a></li>
+					</ul>
+				</div>
+				<div>
+					<p><img src="css/image/menuIcon/人员信息.png"> 人员信息</p>
+					<ul>
+						<li><a href="#" id="linkbutton51">人员管理</a></li>
+						<li><a href="#" id="linkbutton52">角色管理</a></li>
+					</ul>
+				</div>
+				<div>
+					<p><img src="css/image/menuIcon/辅助功能.png"> 基础数据</p>
+					<ul>
+						<li><a href="#" id="linkbutton60">数据类型管理</a></li>
+						<li><a href="#" id="linkbutton601">基础数据管理</a></li>
+						<li><a href="#" id="linkbutton602">基础数据导入</a></li>
+						<li><a href="#" id="linkbutton63">数据采集信息</a></li>
+						<li><a href="#" id="linkbutton64">铁路线路管理</a></li>
+					</ul>
+				</div>
+
+			</div>
+		</div>
+		<div id="right-panel">
+			<div id="right-top-panel">
+				<p>通信现场作业智能化监管平台</p>
+			</div>
+			<div id="container" class="easyui-tabs" data-options="region:'center'">
+				<!--<div title="首页" id="tab1">
+					<iframe scrolling='no' width='100%' height='100%' frameborder='0' src='md/homePage.html'></iframe>
+				</div>-->
+			</div>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var mdArr=[];
+	var sessionid = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var groupArr = JSON.parse(localStorage.getItem("groupArr"));
+	var groupTreeArr = JSON.parse(localStorage.getItem("groupTreeArr"));
+	window.onload = function(){
+		if(localStorage.getItem("sessionid") == null){
+			window.location.href = "index.html";
+			return;
+		}
+		var ps = $("#left-bottom-panel p");
+		var uls = $("#left-bottom-panel ul");
+
+		for(var i = 0,n = ps.length;i < n; i += 1){
+			ps[i].id = i;
+			ps[i].onclick = function(){
+				for (var j = 0;j < n; j += 1) {
+					uls[j].style.display = "none";
+					$(uls[j]).prev().removeClass("selectedP");
+				}
+				uls[this.id].style.display = "block";
+				$(uls[this.id]).prev().addClass("selectedP");
+			}
+		}
+
+		$("#linkbutton1").bind("click",function(){
+      		addTabs("段控作业","md/segcontrol.htm");
+      	});
+
+      	$("#linkbutton2").bind("click",function(){
+      		addTabs("段控作业导入","md/importSeg.html");
+      	});
+
+      	$("#linkbutton3").bind("click",function(){
+      		addTabs("作业完成查询","md/completeWork.html");
+      	});
+
+      	$("#linkbutton31").bind("click",function(){
+      		addTabs("值班管理","md/emplyeeWBManager.html");
+      	});
+
+      	$("#linkbutton41").bind("click",function(){
+      		addTabs("车辆管理","md/useCarStat.html");
+      	});
+
+      	$("#linkbutton51").bind("click",function(){
+      		addTabs("人员管理","md/groupManager.html");
+      	});
+      	$("#linkbutton52").bind("click",function(){
+      		addTabs("角色管理","md/role.html");
+      	});
+
+      	$("#linkbutton60").bind("click",function(){
+      		addTabs("数据类型管理","md/poiKindManager.html");
+      	});
+
+      	$("#linkbutton601").bind("click",function(){
+      		addTabs("基础数据管理","md/PoiManager.html");
+      	});
+
+      	$("#linkbutton602").bind("click",function(){
+      		addTabs("基础数据导入","md/importManager.html");
+      	});
+
+      	$("#linkbutton63").bind("click",function(){
+      		addTabs("数据采集信息","md/gatherQuery.html");
+      	});
+
+      	$("#linkbutton64").bind("click",function(){
+      		addTabs("铁路线路管理","md/railRoadManager.html");
+      	});
+
+      	$('#container').tabs({onClose:function(title,index){
+      		for(var i=0;i<mdArr.length;i++){
+      			if(title === mdArr[i]){
+      				mdArr.splice(i,1);
+      				return ;
+      			}
+      		}
+      	}});
+
+      	//addTabs("首页","md/homePage.html");
+      	addTabs("段控作业","md/segcontrol.htm");
+      	
+      	
+      	if(groupTreeArr == null  || groupTreeArr.length == 0){
+			groupArr = [];
+			groupTreeArr = [];
+			getGroup();
+		}
+	};
+
+	function getGroup(){
+		var xmlStr = RWGroupGet(sessionid,ver,pid);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data : xmlStr,
+			success : function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].group.children=[];
+						groupArr.push(msgObj[i].group);
+					}
+
+					for (var j = 0; j < groupArr.length; j++) {
+						TranTree(groupTreeArr,groupArr[j]);
+					}
+					
+					var arr = JSON.stringify(groupArr);
+					localStorage.setItem("groupArr",arr);
+					localStorage.setItem("groupTreeArr",JSON.stringify(groupTreeArr));
+				}
+			}
+		});
+	}
+
+	function TranTree(arr,item){
+		var sameLevel = true;
+		if(arr.length > 0){
+			if(arr[0].groupno.length < item.groupno.length){
+				sameLevel = false;
+			}
+		}
+		if(sameLevel){
+			arr.push(item);
+		}
+		else{
+			for(var i=0; i< arr.length ; i++){
+				if(item.groupno.indexOf(arr[i].groupno) != -1){
+					TranTree(arr[i].children,item);
+				}
+			}
+		}
+	}
+
+	function addTabs(title,url){
+			for(var i=0;i<mdArr.length;i++){
+				if(title === mdArr[i]){
+					$('#container').tabs("select",title);
+					return;
+				}
+			 }
+			
+			$('#container').tabs("add",{
+				title:title,
+				//content : getUrl(url),
+				//href : url,
+				content:"<iframe scrolling='no' width='100%' height='100%' frameborder='0' src='"+url+"'>",
+				closable:true,
+				scrolling:false,
+				fit:true
+			});
+			$('#container').tabs("select",title);
+			mdArr.push(title);
+		}
+
+</script>
+</html>

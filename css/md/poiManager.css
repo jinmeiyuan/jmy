@@ -1,0 +1,199 @@
+/********************兴趣点类型*****************************/
+#layer-div{
+	position: fixed;
+	top: 160px;
+	left: 400px;
+	width: 300px;
+	height: 180px;
+	background: #FFFFFF;
+	z-index: 50;
+	display: none;
+}
+
+#layer-top-div p{
+	line-height: 40px;
+	font-size: 14pt;
+	color: #666;
+	margin:0 6px;
+}
+
+#layer-content-div{
+	width: 100%;
+	height: 100%;
+}
+
+#layer-content-div div{
+	height: 30px;
+	padding-left: 6px;
+}
+
+#layer-content-div p{
+	display: inline-block;
+}
+
+#layer-content-div input{
+	line-height: 24px;
+	height: 24px;
+	width: 200px;
+}
+
+#layer-content-div select{
+	line-height: 24px;
+	height: 24px;
+	width: 200px;
+}
+
+#layer-content-div .button{
+	width: 80px;
+	height: 24px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 16px;
+	margin: 10px 20px;
+}
+
+#layer-button-div{
+	padding-top:10px auto;
+}
+
+#button-div{
+	height: 30px;
+}
+
+#button-div div{
+	display: inline-block;
+	width: 60px;
+	height: 36px;
+	border-radius: 4px;
+	background: #FFF;	
+	cursor: pointer;
+}
+
+#button-div .mouseover-div{
+	border: 1px solid #c4c4c4;
+}
+
+#button-div div img{
+	width: 20px;
+	height: 20px;
+	padding: 4px;
+	vertical-align: middle;
+}
+
+#button-div div a{
+	line-height: 36px;
+	font-size: 14px;
+	color: #333;
+}
+
+/******************兴趣点***********************/
+#edit-div{
+	position: fixed;
+	top: 100px;
+	left: 360px;
+	width: 300px;
+	height: 380px;
+	background: #FFFFFF;
+	z-index: 50;
+	display: block;
+	display: none;
+	color: #666;
+}
+
+#edit-top-div{
+	height: 40px;
+}
+
+#edit-top-div p{
+	line-height: 40px;
+	font-size: 14pt;
+	color: #666;
+	margin:0 6px;
+}
+
+#edit-content-div p{
+	display: inline-block;
+	line-height: 30px;
+	width: 70px;
+	padding-left: 6px;
+}
+
+#edit-content-div input{
+	line-height: 24px;
+	height: 24px;
+	width: 200px;
+}
+
+#edit-content-div select{
+	line-height: 24px;
+	height: 24px;
+	width: 200px;
+}
+
+#edit-button-div{
+	width: 100%;
+	padding-left: 40px;
+}
+
+#edit-button-div .button{
+	width: 100px;
+	height: 24px;
+	text-align: center;
+	vertical-align: middle;
+	line-height: 18px;
+	margin: 6px auto;
+	color: #666;
+}
+
+#paging-div{
+	position: absolute;
+	left: 20px;
+	top: 630px;
+	left: 20px;
+}
+
+#paging-div .selecting{
+	width: 20px;
+	height: 20px;
+	background: #6ADCA1;
+	color: #FFF;
+	cursor: auto;
+}
+
+#button-div #filter-div{
+	width: calc(100% - 500px);
+	height: 30px;
+	display: inline-block;
+}
+
+#filter-div input{
+	width: 110px;
+	height: 26px;
+}
+
+#filter-div select{
+	width: 110px;
+	height: 26px;
+}
+
+#filter-div p{
+	display: inline-block;
+}
+
+#filter-div #filterBtn{
+	width: 80px;
+	height: 26px;
+	border: 1px solid #c4c4c4;
+	padding: 4px;
+}
+
+#filter-div #exportExcel{
+	width: 80px;
+	height: 26px;
+	border: 1px solid #c4c4c4;
+	padding: 4px;
+}
+
+#button-div #delMorePoi{
+	/**border: 1px solid #c4c4c4;**/
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>人员管理</title>
+
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/employeeManager.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+</head>
+<body>
+<div id="content-div">
+	<table id="one-table">
+		<tr style="height:50px">
+			<th width="80px">序号</th>
+			<th>姓名</th>
+			<th>所属分组</th>
+			<th>通信卡号</th>
+			<th>角色</th>
+		</tr>				
+	</table>
+</div>
+<script type="text/javascript">
+	var sessionid = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var groupArr = JSON.parse(localStorage.getItem("groupArr"));
+	var roleArr = [];
+	$(function(){	
+		getRole();			
+		getEmployee();
+	});
+
+	/**获取角色**/
+	function getRole(){
+		var xmlStr = RWRoleGet(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						roleArr.push(msgObj[i].role);
+					}
+				}
+				else{
+					alert("获取角色失败："+jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function getEmployee(){
+		var xmlStr = RWEmployeeGet(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						addToTable(msgObj[i]);
+					}
+				}
+				else{
+					alert("获取员工失败："+jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function addToTable(aobj){
+		var obj = aobj.employee;
+		var tabLength = $("#one-table tr").length;
+		var groupname = getGroupNameById(obj.groupid);
+		var rolename = getRoleNameById(obj.roleid);
+		$("#one-table").append('<tr id="'+obj.id+'"><td>'+tabLength+'</td><td>'+obj.pname+'</td><td>'+groupname+'</td><td>'+
+			obj.mobile+'</td><td>'+rolename+'</td>');		
+	}
+
+	function getGroupNameById(gid){
+		var result = "";
+		for(var i=0; i < groupArr.length;i++){
+			if(groupArr[i].groupid == gid){
+				result = groupArr[i].groupname;
+				break;
+			}
+		}
+		return result;
+	}
+
+	function getRoleNameById(roleid){
+		var result = "";
+		for(var i=0; i<roleArr.length;i++){
+			if(roleArr[i].roleid == roleid){
+				result = roleArr[i].rolename;
+				break;
+			}
+		}
+		return result;
+	}
+</script>
+</body>
+</html>

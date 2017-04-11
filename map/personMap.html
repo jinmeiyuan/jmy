@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>人员定位</title>
+	<link rel="stylesheet" type="text/css" href="../js/bootstrap-table-master/dist/bootstrap-table.min.css" /> 
+	
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/bootstrap-table.min.js"></script>
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+</head>
+<body>
+<div id="my-personmap-div">
+	<div id="personmap-map">
+	</div>
+	<div id="personmap-table-div">
+		<div id="personmap-btn-div">
+			<input type="button" value="关闭窗口" class="closeBtn5" />
+		</div>
+		<table id="my-personmap-table"></table>
+		
+	</div>
+	
+</div>
+
+<script type="text/javascript">
+var map;
+var view;
+$(function(){
+	var requrl = localStorage.getItem("requrl");
+	
+	var TileLayer = function (options) {
+		var layer = new ol.layer.Tile({
+			extent: ol.proj.transformExtent(options.mapExtent, options.fromProject, options.toProject),
+			source: new ol.source.XYZ({
+				attributions: [options.attribution],
+				url: options.url,
+				tilePixelRatio: options.tilePixelRatio, // THIS IS IMPORTANT
+				minZoom: options.mapMinZoom,
+				maxZoom: options.mapMaxZoom
+			})
+		});
+		return layer;
+	};
+	//定义Google切片参数    
+	var defaults = {
+			url: "http://222.44.123.251"+'/maps/{z}/{x}/{y}.png',
+			mapExtent: [-2.0037508342787E7, -2.0037508342787E7, 2.0037508342787E7, 2.0037508342787E7],
+			mapMinZoom: 1,
+			mapMaxZoom: 14,
+			attribution: new ol.Attribution({
+				html: 'Tiles © GoogleMap'
+			}),
+			tilePixelRatio: 1,
+			fromProject: "EPSG:102100",
+			toProject: "EPSG:3857"
+		};
+	var layer = new TileLayer(defaults);
+	view = new ol.View({
+        center: ol.proj.fromLonLat([121.054378,32.469629]),
+        zoom: 10,
+        minZoom: 1,
+        maxZoom: 12
+    });
+	var sate = new ol.layer.Group({
+        layers: [layer]
+    });
+    map = new ol.Map({
+        target: 'personmap-map',
+        layers: [ 
+			sate
+        ],
+        view:view
+    });
+
+	$("#my-personmap-table").bootstrapTable({
+		striped : true,
+		columns:[{
+			title : "序号",
+			formatter: function(value,row,index){
+				return index+1;
+			},
+			width:40
+		},{
+			field : "gtime",
+			title : "定位时间",
+			width : 130
+		},{
+			field :"x",
+			title : "经度"
+		},{
+			field :"y",
+			title : "纬度"
+		}],
+		onDblClickRow:function(row){
+			try{
+				view.setCenter(ol.proj.fromLonLat(wgs84togcj02(row.x,row.y)));
+			}
+			catch(e){
+				alert("公里标格式不正确");
+			}
+			
+		}
+	});
+
+});
+
+function personMapGetTable(requrl,item){
+	var xmlStr = RWGetPos(sessionId,ver,item);
+	$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var poslist = [];
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.poslist.length; i++) {
+						msg.poslist[i].pos.x = Number(msg.poslist[i].pos.x)/1000000;
+						msg.poslist[i].pos.y = Number(msg.poslist[i].pos.y)/1000000;
+						poslist.push(msg.poslist[i].pos);
+					}	
+					$("#my-personmap-table").bootstrapTable("load",poslist);
+					createMark(poslist);
+				}				
+				else{
+					alert("查询轨迹失败："+jsonObj.error);
+				}
+			}
+		});
+	
+}
+var layerlv1;
+var createMark = function(objArr){
+	var layerlv1arry1 = [];
+	features = [];
+	layerlv1arry1 = [];
+	map.removeLayer(layerlv1);
+	for (var i = 0; i < objArr.length; i++) {
+		var coordinates = ol.proj.fromLonLat(wgs84togcj02(objArr[i].x,objArr[i].y));
+        var feature = new ol.Feature(new ol.geom.Point(coordinates));
+        //设置地图图标
+        feature.setStyle(iconstyle());
+        //feature.name = obj.name;
+        layerlv1arry1.push(feature);
+	}
+
+	layerlv1 = new ol.layer.Vector({
+        source: new ol.source.Vector({
+            features : layerlv1arry1
+        })
+    });
+    if(objArr.length>0){
+        view.setCenter(ol.proj.fromLonLat(wgs84togcj02(objArr[0].x,objArr[0].y)));
+    }
+    map.addLayer(layerlv1);
+}
+	
+</script>
+</body>
+</html>

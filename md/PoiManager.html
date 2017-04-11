@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>基础数据管理</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/poiManager.css">
+	<link rel="stylesheet" type="text/css" href="../css/style.css" media="screen"/>
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+    <script type="text/javascript" src="../xml/icon.js"></script>
+    <script src="../js/jquery.paginate.js" type="text/javascript"></script>
+    <style type="text/css">
+    	.paging-div{
+            padding:0px;
+            bottom:0px;
+        }
+        .paging{
+            width:580px;
+            margin:0 auto;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+<div id="button-div">
+	<div id="getPoi"><img src="../css/image/icon/refresh.png"/><a>刷新</a></div>
+	<div id="addPoi"><img src="../css/image/icon/add.png"/><a>添加</a></div>
+	<div id="editPoi"><img src="../css/image/icon/edit.png"/><a>修改</a></div>
+	<div id="delPoi"><img src="../css/image/icon/delete.png"/><a>删除</a></div>
+	<div id="delMorePoi"><a>批量删除</a></div>
+
+	<div id="filter-div">
+		<p>名称:</p>
+		<input type="text" id="filter-name" placeholder="按名称过滤" />
+		<p>类型:</p>
+		<select id="kind-select"></select>
+		<p>线别:</p>
+		<input type="text" id="filter-linename" placeholder="按线路名称过滤" />
+		<a id="filterBtn">查询</a>
+		<a id="exportExcel">导出</a>
+		<a href="" download="" id="excelA" style="display:none;"></a>
+	</div>
+	
+</div>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th><input type="checkbox" onclick=" onClickHandler(this)"  /></th>
+			<th>序号</th>
+			<th>名称</th>
+			<th>类型</th>
+			<th>线路名称</th>
+			<th>公里标</th>
+			<th>经度</th>
+			<th>纬度</th>
+			<th>上下行</th>
+			<th>备注</th>
+			<th>预留字段</th>
+			<th>预留字段</th>
+		</tr>
+	</table>
+</div>
+<div id="paging-div">
+	<div class="paging">
+		<div id="paging">			
+		</div>
+	</div>
+</div>
+<div id="edit-div">
+	<div id="edit-top-div">
+		<p>添加兴趣点</p>
+	</div>
+	<div id="edit-content-div">
+		<div>
+			<p id="edit-name-p">名称</p>
+			<input type="text" id="edit-name-input" />
+		</div>
+		<div>
+			<p>类型</p>		
+			<select id="kindSelect"></select>
+		</div>
+		<div>
+			<p>线路名称</p>
+			<input type="text" id="edit-linename-input" />
+		</div>
+		<div>
+			<p>公里标</p>
+			<input type="text" id="edit-glb-input" />
+		</div>
+		<div>
+			<p>经度</p>
+			<input type="text" id="edit-x-input" />
+		</div>
+		<div>
+			<p>纬度</p>
+			<input type="text" id="edit-y-input" />
+		</div>
+		<div>
+			<p>上下行</p>
+			<input type="text" id="edit-direct-input" />
+		</div>
+		<div>
+			<p>备注</p>
+			<input type="text" id="edit-remark-input" />
+		</div>
+		<div>
+			<p>预留字段</p>
+			<input type="text" id="edit-reservea-input" />
+		</div>
+		<div>
+			<p>预留字段2</p>
+			<input type="text" id="edit-reserveb-input" />
+		</div>
+		<div id="edit-button-div">
+			<input type="button" value="确定" class="button" id="submit-button" />
+			<input type="button" value="关闭" class="button" onclick="closeWin()" />
+		</div>
+	</div>
+</div>
+<div id="shade-div" > 		
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var selectPoi;
+	var poiArr;
+	var poiKindArr = [];
+	var showArr = [];
+	var thisPage = 1;
+	var editSign = false;
+	var delArr = [];
+	var successDelNum = 0;
+	var exportArr = [];
+	$(function(){
+		getPoiKindFun();		
+		$("#getPoi").bind('click',function(){
+			thisPage = 1;
+			editSign = false;
+			getPoiFun();
+		});
+
+		$("#addPoi").bind('click',function(){			
+			addPoiFun();
+		});
+
+		$("#submit-button").bind('click',function(){
+			submitAddPoiFun();
+		});
+
+		$("#editPoi").bind('click',function(){
+			if(selectPoi != null){
+				editPoiFun();
+			}
+			else{
+				alert("请选择需要修改的行");
+			}
+		});
+
+		$("#delPoi").bind('click',function(){
+			if(selectPoi != null){
+				if(confirm("确定删除?")){	
+					delPoiFun();
+				}
+			}
+			else{
+				alert("请选择需要删除的行");
+			}
+		});
+		getPoiFun();
+		$("#filterBtn").click(function(){
+			filterFun();
+		});
+
+		$("#delMorePoi").click(function(){
+			successDelNum = 0;
+			delArr = [];
+			delMorePoiFun();
+		});
+
+		$("#exportExcel").click(function(){
+			exportArr = [];
+			exportToExcelFun();
+		});
+	});
+
+	function exportToExcelFun(){
+		for (var i = 0; i < showArr.length; i++) {
+			var obj = showArr[i];
+			var item = {
+				"序号" : (i+1)+"",
+				"名称" : obj.name || "",
+				"类型" : obj.kindname || "",
+				"线路名称" : obj.linename || "",
+				"公里标" : obj.glb || "",
+				"经度" : obj.x || "",
+				"纬度" : obj.y || "",
+				"上下行" : obj.direct || "",
+				"备注": obj.remark || "",
+				"A": obj.reservea || "",
+				"B": obj.reserveb || "",
+			}
+			exportArr.push(item);
+		}
+		if(exportArr.length>0){
+			var exportA = {
+				list : JSON.stringify(exportArr)
+			}
+			var xmlStr = RWPOIJsonToExcel(sessionId,ver,exportA);
+			$.ajax({
+				url : requrl,
+				type : "POST",
+				dataType : "json",
+				data : xmlStr,
+				success : function(data){
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						var msg = eval('('+jsonObj.msgbody+')');
+						var a = document.getElementById("excelA");
+						if(window.location.href.indexOf("192.168.2.2") != -1){
+							window.location.href = msg.内网;
+							//a.href = msg.内网;
+						}
+						else{
+							window.location.href = msg.外网;
+							//a.href = msg.外网;
+						}
+						//a.click();
+						
+					}
+					else{
+						alert("导出失败:"+jsonObj.error);
+					}
+				},
+				error:function(XMLHttpRequert,textStatus,errorThrown){
+					alert("导出失败："+errorThrown);
+				}
+			});
+		}
+		else{
+			alert("当前无数据可导出");
+		}
+	}
+
+	function onClickHandler(obj){
+		if(obj.checked){
+			$("[name = 'selectCheck']").prop("checked","true");
+		}
+		else{
+			$("[name = 'selectCheck']").removeAttr("checked");
+		}
+	}
+
+	/***************批量删除*****************/
+	function delMorePoiFun(){
+		var checks = document.getElementsByName("selectCheck");
+
+		for (var i = 0; i < checks.length; i++) {
+			if(checks[i].checked){
+				var tr = checks[i].parentNode.parentNode;
+				var item ={
+					id : tr.id
+				}
+				delArr.push(item);
+			}
+		}
+		if(delArr.length>0){
+			if(confirm("确定删除选中的数据？")){
+				$("#shade-div").css("display","block");
+				delMPoiFun(0);
+			}
+		}		
+	}
+
+	function delMPoiFun(num){
+		var xmlStr = RWPOIDel(sessionId,ver,delArr[num]);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){		
+					$("#"+delArr[num].id).remove();
+					successDelNum += 1;				
+				}
+				else{
+				}
+				if(num == delArr.length-1){
+					selectPoi = null;
+					editSign = true;
+					getPoiFun();
+					alert("成功删除"+(successDelNum)+"条");
+					$("#shade-div").css("display","none")
+				}
+				else{
+					delMPoiFun(num+1);
+				}
+			}
+		});
+	}
+
+	/************根据条件过滤************/
+	function filterFun(){
+		showArr = [];
+		clearTable();
+		var nameTxt = $("#filter-name").val();
+		var kindTxt = $("#kind-select option:selected").text();
+		var linenameTxt = $("#filter-linename").val();
+		for (var i = 0; i < poiArr.length; i++) {
+			if(poiArr[i].name.indexOf(nameTxt) != -1 && (poiArr[i].kindname.indexOf(kindTxt) != "-1" || kindTxt == "全部类型") && (poiArr[i].linename.indexOf(linenameTxt) != -1)){
+				showArr.push(poiArr[i]);		
+			}
+		}
+		for (var j = 0; j < showArr.length && 14; j++) {
+			addToArr(showArr[j],j);
+		}
+		//addPaging();
+		getPaging(1);
+	}
+
+	/**********获取铁路兴趣点类型**********/
+	function getPoiKindFun(){
+		var xmlStr = RWPOIKindGet(sessionId,ver);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					selecetKind = null;
+					var poik = eval('('+jsonObj.msgbody+')');
+					jQuery('<option value="">全部类型</option>').appendTo("#kind-select");
+					for(var i = 0; i<poik.length ; i++){
+						poiKindArr.push(poik[i].poikind);
+						jQuery('<option value="'+poik[i].poikind.PKID+'">'+poik[i].poikind.PKName+'</option>').appendTo("#kindSelect");
+						jQuery('<option value="'+poik[i].poikind.PKID+'">'+poik[i].poikind.PKName+'</option>').appendTo("#kind-select");
+					}	
+					$("#kind-select").val("");				
+				}
+			}
+		});
+	}
+
+	/**删除兴趣点**/
+	function delPoiFun(){
+		var item = {
+			id:selectPoi.id
+		}
+		var xmlStr = RWPOIDel(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					selectPoi = null;
+					$("#"+item.id).remove();
+					//location.reload();
+					editSign = true;
+					getPoiFun();
+
+					alert("删除成功");					
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	/**********获取铁路兴趣点**********/
+	function getPoiFun(){
+		var xmlStr = RWPOIGet(sessionId,ver);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					selectPoi = null;
+					clearTable();
+					poiArr=[];
+					showArr = [];
+					var msg = eval('('+jsonObj.msgbody+')');	
+					for (var i = 0; i < msg.length; i++) {
+						msg[i].poi.kindname = getKindNameById(msg[i].poi.kind) || "";
+						poiArr.push(msg[i].poi);					
+					}
+					var nameTxt = $("#filter-name").val();
+					var kindTxt = $("#kind-select option:selected").text();
+					var linenameTxt = $("#filter-linename").val();
+					for (var j = 0; j < poiArr.length; j++) {					
+						if(poiArr[j].name.indexOf(nameTxt) != -1 && (poiArr[j].kindname.indexOf(kindTxt) != -1 || kindTxt == "全部类型") && poiArr[j].linename.indexOf(linenameTxt) != -1 ){
+							showArr.push(poiArr[j]);
+						}
+					}
+					for(var k=0;k<showArr.length && 14;k++){
+						addToArr(showArr[k],k);	
+					}
+					//addPaging();
+					getPaging(thisPage);
+					//clickAFun(thisPage);
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function getPaging(num){
+		$("#paging").empty();
+		if(showArr.length >13){
+			var poiLength = Math.ceil(showArr.length/13);
+			$("#paging").paginate({
+				count : poiLength,
+				start : num,
+				display : 10,
+				border					: true,
+				text_color  			: '#666',
+				background_color    	: '#FFF',	
+				text_hover_color  		: '#FFF',
+				background_hover_color	: '#6ADCA1'
+			});
+		}
+		clickFun(num);
+	}
+
+	function getKindNameById(kindid){
+		for(var i = 0;i<poiKindArr.length;i++){
+			if(poiKindArr[i].PKID == kindid){
+				return poiKindArr[i].PKName;
+			}
+		}
+	}
+
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove();
+	}
+
+	function addToArr(obj,num){
+		var tabLength = $("#data-table tr").length;
+		if(tabLength < 14){
+			$("#data-table").append('<tr id="'+obj.id+'" onclick="trSelectFun(\''+obj.id+'\')"><td><input type="checkbox" name="selectCheck"/></td><td>'+(num+1)+'</td><td>'+obj.name+'</td><td>'+obj.kindname+'</td><td>'+obj.linename+'</td><td>'+obj.glb+'</td><td>'+(obj.x || "")+'</td><td>'+(obj.y || "")+'</td><td>'+(obj.direct || "")+'</td><td>'+obj.remark+'</td><td>'+obj.reservea+'</td><td class="right-td">'+obj.reserveb+'</td></tr>');	
+		}			
+	}
+
+	function addPaging(){
+		$("#paging-div").empty();
+		if(showArr.length > 13){
+			var poiLength = (showArr.length/13);
+			$("#paging-div").append('<a onclick="clickAFun(1)">首页</a>');
+			for(var i = 0 ; i < poiLength ; i++){
+				$("#paging-div").append('<a onclick="clickAFun('+(i+1)+')" id="a'+(i+1)+'">'+(i+1)+'</a>');
+				if(i == 0){
+					$("#a1").addClass("selecting")
+				}
+			}
+			$("#paging-div").append('<a onclick="clickAFun('+(Math.ceil(poiLength))+')">尾页</a>');
+		}
+	}
+
+	function clickAFun(num){
+		thisPage = num;
+		if($("#a"+num).hasClass("selecting")){
+
+		}
+		else{
+			$("#paging-div a").removeClass("selecting");
+			$("#a"+num).addClass("selecting");
+			clearTable();
+			for(var i=(num-1)*13; i<num*13 && i<showArr.length; i++){
+				addToArr(showArr[i],i);
+			}	
+		}
+	}
+
+	function clickFun(num){
+		thisPage = num;
+		clearTable();
+		for(var i=(num-1)*13; i<num*13 && i<showArr.length; i++){
+			addToArr(showArr[i],i);
+		}	
+	}
+
+	function trSelectFun(objId){
+		if(selectPoi != null){
+			$("#"+selectPoi.id).removeClass("selecteding");
+		}
+		
+		for (var i = 0;i < showArr.length;i++) {
+			if(showArr[i].id == objId){
+				selectPoi = showArr[i];
+				$('#'+objId).addClass("selecteding");
+				break;
+			}
+		}
+	}
+
+	function addPoiFun(){
+		$("#edit-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#edit-name-input").val("");
+		$("#edit-linename-input").val("");
+		$("#edit-glb-input").val("");
+		$("#edit-x-input").val("");
+		$("#edit-y-input").val("");
+		$("#edit-direct-input").val("");
+		$("#edit-remark-input").val("");
+		$("#edit-reservea-input").val("");
+		$("#edit-reserveb-input").val("");
+		$("#edit-top-div p").text("添加兴趣点");
+		$("#kindSelect").val("");
+	}
+
+	function editPoiFun(){
+		$("#edit-top-div p").text("修改兴趣点");
+		$("#edit-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#edit-name-input").val(selectPoi.name);
+		$("#edit-linename-input").val(selectPoi.linename);
+		$("#edit-glb-input").val(selectPoi.glb);
+		$("#edit-x-input").val(selectPoi.x);
+		$("#edit-y-input").val(selectPoi.y);
+		$("#edit-direct-input").val(selectPoi.direct);
+		$("#edit-remark-input").val(selectPoi.remark);
+		$("#edit-reservea-input").val(selectPoi.reservea);
+		$("#edit-reserveb-input").val(selectPoi.reserveb);
+		$("#kindSelect").val(selectPoi.kind);
+	}
+
+	function submitAddPoiFun(){
+		if(validator()){
+			item = {
+				id : newGuid(),
+				name : $("#edit-name-input").val(),
+				kind : $("#kindSelect option:selected").val() || "",
+				linename : $("#edit-linename-input").val(),
+				glb : $("#edit-glb-input").val(),
+				x : $("#edit-x-input").val(),
+				y : $("#edit-y-input").val(),
+				direct : $("#edit-direct-input").val(),
+				remark : $("#edit-remark-input").val(),
+				reservea : $("#edit-reservea-input").val(),
+				reserveb : $("#edit-reserveb-input").val(),
+				groupno : ""
+			};
+			if($("#edit-top-div p").text() == "添加兴趣点"){
+				clickAddPoiFun(item);
+			}
+			else{
+				item.id = selectPoi.id;
+				clickEditPoiFun(item);
+			}
+		}
+	}
+
+	/**点击确认按钮添加兴趣点**/
+	function clickAddPoiFun(item){
+		var xmlStr = RWPoiAdd(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){					
+					editSign = true;
+					getPoiFun();
+					alert("添加成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+		});
+	}
+
+	function clickEditPoiFun(item){
+		var xmlStr = RWPOIEdit(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					editSign = true;
+					getPoiFun();
+					alert("修改成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+		});
+	}
+
+	function validator(){
+		if($("#edit-name-input").val() == ""){
+			alert("请输入名称");
+			return;
+		}
+		if($("#edit-glb-input").val() == ""){
+			alert("请输入公里标");
+			return;
+		}
+		return true;
+	}
+
+	function closeWin(){
+		$("#edit-div").css("display","none");
+		$("#shade-div").css("display","none");
+	}
+</script>
+</body>
+</html>

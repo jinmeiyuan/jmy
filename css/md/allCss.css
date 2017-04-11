@@ -1,0 +1,132 @@
+body{
+	padding: 0;
+	margin: 0;
+	background: #fff;
+	overflow: hidden;
+	font-size: 14px;
+	font-family: "微软雅黑";
+}
+
+*{
+	padding: 0px;
+	margin: 0px;
+}
+
+input,button,select,textarea{
+	outline: none;
+}
+
+button{
+	display: block;
+	width: 100px;
+	height: 30px;
+	text-align: center;
+	margin: 6px;
+	background: #EEE;
+	border:1px solid #c9c9c9;
+	color: #666;
+}
+
+textarea{
+	max-width: 230px;
+	max-height: 320px;
+	min-width: 230px;
+	min-height: 320px;
+	overflow: hidden;
+}
+
+
+/********************遮罩*************************/
+#shade-div{
+	position: fixed;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background: #000;
+	opacity:0.3;
+	display: none;
+	z-index: 20;
+}
+
+/**************进度条*******************/
+.progressbar{
+	position: fixed;
+	top: 300px;
+	left: 400px;
+	height: 30px;
+	width: 300px;
+	border:1px solid #666;
+	color: #222;
+	display: none;
+	z-index: 100;
+}
+
+.progressbar .bar{
+	background: #2378D7;
+	height: 100%;
+	width: 50%;
+}
+
+.progressbar .bar p{
+	color: #FFFFFF;
+	margin-left: 6px;
+	line-height: 30px;
+}
+
+
+/************选择框****************/
+.select-skin{
+	width: 84px;
+	height: 24px;
+	border: 1px solid #c4c4c4;
+	border-radius: 4px;
+	font-size: 14px;
+	font-family: "微软雅黑";
+	color: #666;
+}
+
+/*按钮*/
+input[type="button"]{
+	width: 100px;
+	height: 22px;
+	line-height: 22px;
+	border-radius: 4px;
+	text-align: center;
+	vertical-align: middle;
+	color: #666;
+	background: #fff;
+	cursor: pointer;
+	border:1px solid #c9c9c9;
+}
+
+/*******弹出框样式*********/
+.my-title{
+	width: calc(100% - 40px);
+	height: 40px;
+	border-bottom: 1px solid #d9d9d9;
+	margin: 0 20px;
+	vertical-align: middle;
+}
+
+.my-title p{
+	line-height: 40px;
+}
+
+.my-window-close{
+	float: right;
+	position: absolute;
+	right: -10px;
+	top: -10px;
+}
+
+.my-window{
+	position: fixed;
+	top: 30px;
+	left: 130px;
+	width: 800px;
+	height: 500px;
+	background : #FFF;
+	z-index: 50;
+	box-shadow: 6px 12px 12px #999;
+}

@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>用车统计</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<link rel="stylesheet" href="../js/bootstrap-3.3.7-dist/css/bootstrap.min.css" /> 
+	<link rel="stylesheet" type="text/css" href="../js/bootstrap-table-master/dist/bootstrap-table.min.css" /> 
+	
+	<link rel="stylesheet" type="text/css" href="../css/md/segControl.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/useCarStat.css">
+	<link rel="stylesheet" type="text/css" href="../css/style.css" media="screen"/>
+
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+	<link rel="stylesheet" type="text/css" href="../map/carmap.css"/>
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../map/ol.css" />
+	<script type="text/javascript" src="../map/ol.js"></script>
+	<script type="text/javascript" src="../map/polyfill.min.js"></script>
+	<script type="text/javascript" src="../map/map.js"></script>
+	<script type="text/javascript" src="../js/jeDate/jedate.js"></script>
+	<script src="../js/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/bootstrap-table.min.js"></script>
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+	<script type="text/javascript" src="../map/carmap2.js"></script>
+	<script type="text/javascript" src="../myJs/globalobject.js"></script>
+
+	<script src="../js/jquery.paginate.js" type="text/javascript"></script>
+
+
+    <style type="text/css">
+    	.paging-div{
+            padding:0px;
+            bottom:0px;
+        }
+        .paging{
+            width:580px;
+            margin:0 auto;
+            border: 1px solid #fff;
+        }
+    </style>
+</head>
+<body>
+<div id="search-div">
+	<table>
+		<tr>
+			<td><p>选择分组</p></td>
+			<td><select class="easyui-combotree" name="groupname" id="ttSelect" /></td>
+			<td><p>起始时间</p></td>
+			<td><input class="datainp" id="startDate" type="text" placeholder="选择开始时间"  readonly style="cursor:pointer;"></td>
+			<td><p>结束时间</p></td>
+			<td><input class="datainp" id="endDate" type="text" placeholder="选择结束时间"  readonly style="cursor:pointer;"></td>
+			<td><p>车牌号</p></td>
+			<td><input type="text" id="carname-txt"></td>
+			<td><input type="button" value="查询" id="searchBtn" /></td>
+		</tr>
+	</table>
+</div>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th>序号</th>
+			<th>分组名称</th>
+			<th>车牌号</th>
+			<th>描述</th>
+			<th>开始时间</th>
+			<th>结束时间</th>
+			<th>轨迹</th>
+		</tr>
+	</table>
+	<div id="paging-div">
+		<div class="paging">
+			<div id="paging">
+			
+			</div>
+		</div>
+	</div>
+	<!-- <div id="window-div3">
+		<img src="../css/image/段控作业图标/关闭.png" id="closeBtn3" class="closeBtn2"></img>
+		<div id="map" class="map"></div>
+	</div> -->
+	<div id="shade-div" > 		
+	</div>
+	<div class="modal fade" id="loadingModal">
+		<div style="width: 200px;height:20px; z-index: 20000; position: absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+			<div class="progress progress-striped active" style="margin-bottom: 0;">
+				<div class="progress-bar" style="width: 100%;"></div>
+			</div>
+			<h5>正在加载...</h5>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+	var groupTreeArr = JSON.parse(localStorage.getItem("groupTreeArr"));
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var carStatArr = [];
+	var poslist = [];
+	var selectGroup;
+	$(function(){
+		$("#searchBtn").click(function(){
+			searchFun();
+		});
+		addEmpty();
+		$(".closeBtn2").click(function(){
+			removeLayer();
+			$("#window-div3").css("display","none");
+			$("#shade-div").css("display","none");  
+		});
+
+		$("#ttSelect").combotree({
+			formatter:function(node){
+				return node.groupname;
+			},
+			onSelect:function(node){
+				selectGroup = node;
+				setTimeout(function(){setSelect(selectGroup),300});			
+			},
+			required:true,
+		});
+
+
+
+		$("#ttSelect").combotree('loadData',groupTreeArr);
+		setSelect(groupTreeArr[0]);
+		selectGroup = groupTreeArr[0];
+		initDate();
+	});
+
+	jeDate({
+		dateCell:"#startDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	jeDate({
+		dateCell:"#endDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	function setSelect(sg){
+		$("#ttSelect").combotree("setValue",sg.groupname);
+	}
+
+	//用车统计
+	function searchFun(){
+		if(!validator()){
+			alert("开始时间"+$("#startDate").val()+";结束时间"+$("#endDate").val());
+			return;
+		}
+		$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+		var item = {
+			startdate : $("#startDate").val(),
+			enddate : $("#endDate").val(),
+			groupname : selectGroup.groupname,
+			carname : $("#carname-txt").val()
+		};
+		var xmlStr = RWUseCarStat(sessionId,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					carStatArr = [];
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.length; i++) {
+						carStatArr.push(msg[i].usecar);
+					}		
+					addCarStatFun(1);
+					getPaging();		
+				}
+				else{
+					alert("用车统计查询失败："+jsonObj.error);
+				}
+				$("#loadingModal").modal("hide");
+			}
+		});
+	}
+
+	function getPaging(){
+		if(carStatArr.length >13){
+			var poiLength = Math.ceil(carStatArr.length/13);
+			$("#paging").paginate({
+				count : poiLength,
+				start : 1,
+				display : 10,
+				border					: true,
+				text_color  			: '#666',
+				background_color    	: '#FFF',	
+				text_hover_color  		: '#FFF',
+				background_hover_color	: '#6ADCA1'
+			});
+		}
+		else{
+			$("#paging").paginate({
+				count : 0,
+				start : 1,
+				display : 0,
+				border					: true,
+				text_color  			: '#666',
+				background_color    	: '#FFF',	
+				text_hover_color  		: '#FFF',
+				background_hover_color	: '#6ADCA1'
+			});
+		}
+	}
+
+	function clickFun(num){
+		clearTable();
+		addCarStatFun(num);
+	}
+
+	function initDate(){
+		var mydate = new Date();
+		var yesDate = new Date(mydate.getFullYear(),mydate.getMonth(),mydate.getDate()-1);
+
+		$("#startDate").val(yesDate.getFullYear()+"-"+getTwoNum(yesDate.getMonth()+1)+"-"+getTwoNum(yesDate.getDate())+" "+getTwoNum(mydate.getHours())+":"+getTwoNum(mydate.getMinutes())+":"+getTwoNum(mydate.getSeconds()));
+		$("#endDate").val(mydate.getFullYear()+"-"+getTwoNum(mydate.getMonth()+1)+"-"+getTwoNum(mydate.getDate())+" "+getTwoNum(mydate.getHours())+":"+getTwoNum(mydate.getMinutes())+":"+getTwoNum(mydate.getSeconds()));
+	}
+
+	function getTwoNum(str){
+		return (parseInt(str)>=10)?str:("0"+str);
+	}
+
+
+	function validator(){
+		if(selectGroup == null){
+			alert("请选择分组");
+			return false;
+		}
+		if($("#startDate").val()== "" || $("#endDate").val() == ""){
+			alert("请选择开始时间或结束时间");
+			return;
+		}
+		if($("#startDate").val() >= $("#endDate").val()){
+			alert("开始时间不能晚于结束时间");
+			return false;
+		}
+		return true;
+	}
+
+	/**清空表格**/
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove("");
+	}
+
+	function addCarStatFun(num){
+		for(var i = 13*(num-1); i < carStatArr.length  && i < 13*num; i++){
+			var aCopy = carStatArr[i];
+			$("#data-table").append('<tr id="'+aCopy.apply_id+'"><td>'+(i+1)+'</td><td>'+aCopy.groupname+'</td><td>'+(aCopy.apply_carnum || "")+'</td><td>'+aCopy.comment+'</td><td>'+aCopy.starttime+'</td><td>'+aCopy.endtime+'</td><td><img src="../css/image/icon/position.png" class="positionBtn" onclick="getPosition(\''+aCopy.apply_id+'\')" title="车辆轨迹"></img></td></tr>');
+		}
+		addEmpty();
+	}
+
+	function getPosition(objId){
+		var item = {
+			kind : "tname",
+			
+		};
+		for (var i = 0; i < carStatArr.length; i++) {
+			if(carStatArr[i].apply_id == objId){
+				item.simno = carStatArr[i].apply_carnum || "";
+				item.start = carStatArr[i].starttime;
+				item.end = carStatArr[i].endtime;
+				break;
+			}
+		}
+		$.ajax({
+			type : "GET",
+			url : "../map/carMap.html",
+			dataType : "html",
+			success : function(data){
+				// $("#window-div3").css("display","block");
+				// $("#window-div3").html(data);
+				$("#shade-div").css("display","block");
+				$(document.body).append(data);
+				$("#my-carmap-title p").text(item.simno+"在"+item.start+"至"+item.end+"的车辆轨迹");
+				$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+				itemmainCar.carMapGetTable(item);
+
+				$(".my-window-close").click(function(){
+					$("#my-carmap-div").remove();
+					$("#shade-div").css("display","none");
+				});
+			}
+		});
+	}
+	//var firstMap = 0;
+	// function getPosition(objId){
+	// 	$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+	// 	$("#shade-div").css("display","block");
+	// 	$("#window-div3").css("display","block");
+	// 	if(firstMap == 0){
+	// 		initMap();
+	// 		firstMap = 1;
+	// 	}
+	// 	removeLayer2();
+
+		
+	// 	for (var i = 0; i < carStatArr.length; i++) {
+	// 		if(carStatArr[i].apply_id == objId){
+	// 			var item = {
+	// 				kind : "tname",
+	// 				simno : carStatArr[i].apply_carnum,
+	// 				start : carStatArr[i].starttime,
+	// 				end : carStatArr[i].endtime
+	// 			};
+	// 			var xmlStr = RWGetPos(sessionId,ver,item);
+	// 			$.ajax({
+	// 				url : requrl,
+	// 				type : "POST",
+	// 				dataType:"json",
+	// 				data:xmlStr,
+	// 				success:function(data){
+	// 					var jsonObj = eval(data);
+	// 					if(jsonObj.result == "0"){
+
+	// 						poslist = [];
+	// 						var msg = eval('('+jsonObj.msgbody+')');
+	// 						for (var i = 0; i < msg.poslist.length; i++) {
+	// 							msg.poslist[i].x = Number(msg.poslist[i].pos.x)/1000000;
+	// 							msg.poslist[i].y = Number(msg.poslist[i].pos.y)/1000000;
+	// 							poslist.push(msg.poslist[i]);
+	// 						}	
+							
+	// 						createLine2(poslist);
+	// 					}				
+		
+	// 					else{
+	// 						alert("查询轨迹失败："+jsonObj.error);
+	// 						$("#window-div3").css("display","none");
+	// 						$("#shade-div").css("display","none"); 
+	// 					}
+	// 					$("#loadingModal").modal("hide");
+	// 				},
+	// 				error:function(XMLHttpRequert,textStatus,errorThrown){
+	// 					alert("访问网络失败"+errorThrown);
+	// 					$("#loadingModal").modal("hide");
+	// 					$("#window-div3").css("display","none");
+	// 					$("#shade-div").css("display","none"); 
+	// 				}		
+	// 			});
+	// 		}
+	// 	}
+	// }
+
+	function addEmpty(){
+		$(".positionBtn").click(function(e){
+			e.stopPropagation();
+		});
+		var trlength = $("#data-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#data-table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+	function addPaging(){
+		$("#paging-div").empty();
+		if(carStatArr.length >13){
+			var poiLength = (carStatArr.length/13);
+			$("#paging-div").append('<a onclick="clickAFun(1)">首页</a>');
+			for(var i = 0 ; i < poiLength ; i++){
+				$("#paging-div").append('<a onclick="clickAFun('+(i+1)+')" id="a'+(i+1)+'">'+(i+1)+'</a>');
+				if(i == 0){
+					$("#a1").addClass("selecting")
+				}
+			}
+			$("#paging-div").append('<a onclick="clickAFun('+(Math.ceil(poiLength))+')">尾页</a>');
+		}
+	}
+
+	function clickAFun(num){
+		if($("#a"+num).hasClass("selecting")){
+
+		}
+		else{
+			$("#paging-div a").removeClass("selecting");
+			$("#a"+num).addClass("selecting");
+			clearTable();
+			addCarStatFun(num);
+		}
+		
+	}
+
+</script>
+</body>
+</html>

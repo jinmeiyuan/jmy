@@ -1,0 +1,16 @@
+#table-div{
+	overflow-y: auto;
+}
+
+#search-div #exportBtn{
+	width: 60px;
+	height: 24px;
+	background: #fff;
+	border: 1px solid #c4c4c4;
+	cursor: pointer;
+}
+
+#search-div .datainp{
+	width: 150px;
+	height: 26px;
+}

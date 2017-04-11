@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>导入基站信息</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+</head>
+<body>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th>序号</th>
+			<th>通话柱名称</th>
+			<th>线路名称</th>
+			<th>公里标</th>
+			<th>经度</th>
+			<th>纬度</th>
+			<th>备注</th>
+		</tr>
+	</table>
+</div>
+<div id="button-div">
+	<div id="file-div">
+		<input type="file" id="files" value="选择文件" onchange="readExcel()" />选择文件
+	</div>	
+	<input id="button-input" type="button" value="导入表格"  onclick="sendExcel()" />
+</div>
+<div id="shade-div" > 		
+	</div>
+	<div class="progressbar">
+	<div class="bar"><p>50%</p></div>
+
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var importurl = localStorage.getItem("importurl");
+	var ver = localStorage.getItem("ver");
+	var sendArr = [];
+	$(function(){
+		addEmpty();
+	});
+
+	function addEmpty(){
+		var trlength = $("#data-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#data-table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td class="right-td"></td></tr>');
+		}
+	}
+
+	function readExcel(){
+		var formdata = new FormData();
+		if($('input[type = file]')[0].files.length == 0){
+			alert("请选择一个文件上传");
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[0].files[0]);
+		$.ajax({
+			url:importurl,
+			type:"POST",
+			data:formdata,
+			processData:false,
+			contentType:false,
+			success:function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					clearTable();
+					sendArr=[];
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for(var i = 0;i < msgObj.length ;i++){
+						createTable(msgObj[i]);
+					}
+
+					addEmpty();
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove();
+	}
+
+	function createTable(item){
+		if((item.序号 || "") == "")  {
+			return;
+		}
+		var tabLength = $("#data-table tr").length;
+		var obj = {
+			id : newGuid(),
+			name : item.通话柱名称 || "",
+			kind : "",
+			linename : item.线路名称 || "",
+			glb : item.公里标 || "",
+			x : item.经度 || "",
+			y : item.纬度 || "",
+			direct : "",
+			remark : item.备注 || "",
+			reservea : "",
+			reserveb : ""
+		}
+		sendArr.push(obj);
+		$("#data-table").append('<tr><td>'+tabLength+'</td><td>'+obj.name+'</td><td>'+obj.linename+'</td><td>'+obj.glb+'</td><td>'+obj.x+'</td><td>'+obj.y+'</td><td class="right-td">'+obj.remark+'</td></tr>');
+
+		
+	}
+
+	/****************导入表格****************/
+	function sendExcel(){
+		if(sendArr.length == 0){
+			return;
+		}
+		var successNum = 0;
+		$("#shade-div").show();
+		$(".progressbar").show();
+		$(".progressbar .bar").width("0%");
+		$(".progressbar .bar p").val("0%");
+
+		addWork(0,0);
+	}
+
+	function addWork(num,successNum){
+		$(".progressbar .bar").width((num+1)/(sendArr.length));
+		$(".progressbar .bar p").val((num+1)+"/"+(sendArr.length));
+		var xmlStr = RWPoiAdd(sessionId,ver,sendArr[num]);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0" ){
+					successNum += 1;
+				}	
+				else{
+					layer.open({
+						title:false,
+						content:"第"+num+"条数据导入失败："+jsonObj.error,
+						offset:[200,0]			
+					});
+				}
+
+				if(num == sendArr.length-1){
+					layer.open({
+						title:false,
+						content:"导入"+successNum+"条数据",
+						offset:[200,0]
+					});
+					hideProgress();
+				}else{
+					addWork(num+1,successNum);
+				}	
+
+				
+			}				
+		});
+	}
+
+	function hideProgress(){
+		$("#shade-div").hide();
+		$(".progressbar").hide();
+	}
+
+</script>
+</body>
+</html>

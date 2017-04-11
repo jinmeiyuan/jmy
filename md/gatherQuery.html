@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>数据采集信息</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="../css/md/segControl.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/useCarStat.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/gatherQuery.css">
+
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../map/ol.css" />
+	<script type="text/javascript" src="../map/ol.js"></script>
+	<script type="text/javascript" src="../map/polyfill.min.js"></script>
+	<script type="text/javascript" src="../map/map.js"></script>
+	<script type="text/javascript" src="../js/jeDate/jedate.js"></script>
+
+</head>
+<body>
+<div id="search-div">
+	<input class="datainp" id="startDate" type="text" placeholder="选择开始时间"  readonly style="cursor:pointer;">
+	<input class="datainp" id="endDate" type="text" placeholder="选择结束时间"  readonly style="cursor:pointer;">
+	<input type="button" value="查询" id="searchBtn" />
+	<input type="button" value="导出" id="exportBtn" />
+	<a id="dlink" style="display:none;"></a>
+</div>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th>序号</th>
+			<th>采集时间</th>
+			<th>经度</th>
+			<th>纬度</th>
+			<th>点名称</th>
+			<th>备注</th>
+		</tr>
+	</table>	
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var gatherArr = [];
+	$(function(){
+		//initDate();
+		$("#searchBtn").click(function(){
+			searchFun();
+		});
+		addEmpty();
+		$("#exportBtn").click(function(){
+			exportTable('data-table','数据采集信息','数据采集信息.xls');
+		});
+
+		//$( "input[name='act_start_time'],input[name='act_stop_time']" ).datetimepicker();
+	});
+
+	jeDate({
+		dateCell:"#startDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	jeDate({
+		dateCell:"#endDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	/**初始化时间**/
+	function initDate(){
+		var mydate = new Date();
+		var yesDate = new Date(mydate.getFullYear(),mydate.getMonth(),mydate.getDate()-1);
+
+		$("#startDate").datebox('setValue',yesDate.getFullYear()+"-"+(yesDate.getMonth()+1)+"-"+yesDate.getDate());
+		$("#endDate").datebox('setValue',mydate.getFullYear()+"-"+(mydate.getMonth()+1)+"-"+mydate.getDate());
+	}
+
+	//获取数据采集信息
+	function searchFun(){
+		var item = {
+			start : $("#startDate").val(),
+			end : $("#endDate").val()
+		};
+		if(item.start == "" || item.end == ""){
+			alert("请选择开始时间或结束时间");
+			return;
+		}
+		if(item.start > item.end){
+			alert("开始时间不能晚于结束时间");
+			return;
+		}
+		var xmlStr = QWGatherQuery(sessionId,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					gatherArr = [];
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.points.length; i++) {
+						gatherArr.push(msg.points[i]);
+					}	
+					addGatherFun();			
+				}
+				else{
+					alert("获取数据采集信息失败："+jsonObj.error);
+				}
+			}
+		});
+	}
+
+	/**清空表格**/
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove("");
+	}
+
+	function addGatherFun(){
+		for(var i = 0; i < gatherArr.length; i++){
+			var aCopy = gatherArr[i].point;
+			$("#data-table").append('<tr id="'+aCopy.id+'"><td>'+(i+1)+'</td><td>'+aCopy.gtime+'</td><td>'+aCopy.x+'</td><td>'+aCopy.y+'</td><td>'+aCopy.pname+'</td><td>'+aCopy.remark+'</td></tr>');
+		}
+		addEmpty();
+	}
+
+	function addEmpty(){
+		var trlength = $("#data-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#data-table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+	/********导出表格*********/
+	function getExplorer(){
+		var explorer = window.navigator.userAgent;
+		if(explorer.indexOf("MSIE") >= 0){
+			return 'ie';
+		}
+
+		else if(explorer.indexOf("Firefox") >= 0){
+			return 'Firefox';
+		}
+
+		else if(explorer.indexOf("Chrome") >= 0){
+			return 'Chrome';
+		}
+
+		else if(explorer.indexOf("Opera") >= 0){
+			return 'Opera';
+		}
+		else if(explorer.indexOf("Safari") >= 0){
+			return 'Safari';
+		}
+	}
+
+	function exportTable(tableid,name,filename){
+		if(getExplorer() == 'ie'){
+			var curTbl = document.getElementById(tableid);  
+            var oXL = new ActiveXObject("Excel.Application");  
+            var oWB = oXL.Workbooks.Add();  
+            var oSheet = oWB.ActiveSheet;  
+            var Lenr = curTbl.rows.length;  
+            for (i = 0; i < Lenr; i++)  
+            {        
+            	var Lenc = curTbl.rows(i).cells.length;  
+                for (j = 0; j < Lenc; j++)  
+                {  
+                    oSheet.Cells(i + 1, j + 1).value = curTbl.rows(i).cells(j).innerText;  
+                }  
+            }  
+            oXL.Visible = true;
+		}
+		else{
+			tableToExcel(tableid,name,filename);
+		}
+	}
+
+	var tableToExcel = (function(){
+		var uri = 'data:application/vnd.ms-excel;base64,',  
+        template = '<html><head><meta charset="UTF-8"></head><body><table>{table}</table></body></html>',  
+        base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) },  
+        format = function(s, c) {  
+            return s.replace(/{(\w+)}/g,  
+                   function(m, p) { return c[p]; }) 
+        }  
+        return function(table, name,filename) {  
+            if (!table.nodeType) table = document.getElementById(table)  
+            var ctx = {worksheet: name || 'Worksheet', table: table.innerHTML}  
+
+            document.getElementById("dlink").href = uri + base64(format(template, ctx));
+            document.getElementById("dlink").download = filename;
+            document.getElementById("dlink").click();
+        }  
+	})()
+
+</script>
+</body>
+</html>

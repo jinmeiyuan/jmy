@@ -1,0 +1,349 @@
+body{
+	height: 100%;
+}
+html{
+	height: 100%;
+}
+/**************第一行*****************/
+#top-div{
+	width: 100%;
+	height: 30px;
+	line-height: 30px;
+	vertical-align: middle;
+
+	position: relative;
+}
+
+#top-div p{
+	display: inline;
+	margin-left: 10px;
+	position: relative;
+}
+
+#top-div input{
+	display: inline;
+	width: 150px;
+	position: relative;
+	height: 26px;
+}
+
+#top-div select{
+	display: inline;
+	width: 200px;
+	position: relative;
+	margin-left: 4px;
+}
+
+.textbox{
+	-webkit-border-radius : 0;
+}
+
+/**按钮样式**/
+#top-div button{
+	margin: 10px;
+	width: 70px;
+	height: 26px;
+	border-radius: 4px;
+	text-align: center;
+	line-height: 22px;
+	cursor: pointer;
+	color: #000;
+
+}
+
+#content-div{
+	overflow-y: all;
+}
+
+/**表格样式**/
+#content-div table{
+	height: 100%;
+	width: calc(100%-40px);
+	margin: 0 20px;
+	color: #666;
+	border-collapse: collapse;
+	text-align: center;
+	border-bottom: 1px solid #c4c4c4;
+}
+
+#content-div table{
+	overflow-x: auto;
+}
+
+#content-div table th{
+	border-bottom: 1px solid #c4c4c4;
+	height: 40px;
+	margin: 0px;
+	background: #ffffff;
+	color: #333;
+	font-weight: normal;
+}
+
+#content-div table tr{
+	height: 40px;
+}
+
+#content-div table td{
+	word-break: break-all;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	width: 60px;
+	border-right: 1px solid #e8e8e8;
+	min-width: 30px;
+}
+
+
+#content-div table tr:nth-child(odd){
+	background: #f1f3f8;
+}
+
+#content-div table tr:nth-child(even){
+	background: #FFFFFF;
+}
+
+
+#content-div table .right-td{
+	border-right: 0px solid #e8e8e8;
+}
+
+#content-div table .selecteding{
+	border:1px solid #2b7fdd;
+}
+
+
+/********弹窗***********/
+#window-div{
+	position: fixed;
+	top: 50px;
+	right: 50px;
+	width: 600px;
+	height: 480px;
+	background: #FFFFFF;
+	z-index: 50;
+	display: none;
+	color: #333;
+	box-shadow: 4px 4px 6px rgba(62,87,112,0.3);
+}
+
+#table-div{
+	position: fixed;
+	top: 50px;
+	left: 50px;
+	width: 480px;
+	height: 480px;
+	background: #FFFFFF;
+	z-index: 50;
+	display: none;
+	box-shadow: 4px 4px 6px rgba(62,87,112,0.3);
+}
+
+#table-div table{
+	width: 400px;
+	margin: 10px 26px;
+	border-collapse: collapse;
+	vertical-align: middle;
+}
+
+#table-div table .top-border{
+	border-top: 1px solid #c4c4c4;
+	padding-top: 20px;
+	margin-top: 20px;
+}
+
+#table-div >p{
+	font-size: 18px;
+	margin: 10px 26px 10px;
+	height: 30px;
+}
+
+#table-div table td{
+	margin: 0px;
+}
+
+#table-div table tr{
+	height: 30px;
+}
+
+#table-div table td:nth-child(odd){
+	width: 100px;
+	color: #333;
+}
+
+#table-div table td:nth-child(even){
+	width: 220px;
+	color: #666;
+}
+
+#work-left-div{
+	width: 20px;
+	height: 100px;
+	display: inline;
+}
+
+/***************************照片********************/
+#showPhoto{
+	width: calc(100% - 40px);
+	height: 190px;
+	margin: 10px 26px;
+	overflow-y: auto;
+}
+
+#showPhoto .prev{
+	width: 70px;
+	height: 60px;
+	background: url("../image/btn.gif") no-repeat;
+	position: absolute;
+	top: 330px;
+	left: 280px;
+	z-index: 3001;
+	cursor:pointer;
+	filter: alpha(opacity : 0);
+	opacity: 0;
+}
+
+#showPhoto .next{
+	width: 60px; 
+	height: 60px; 
+	background: url("../image/btn.gif") no-repeat 0 -60px; 
+	position: absolute; 
+	top: 330px; 
+	right: 50px; 
+	z-index: 3001;
+	cursor: pointer; 
+	filter:alpha(opacity: 0); 
+	opacity:0;
+}
+
+#showPhoto ul{
+	width: 100%;
+	height: 200px;
+	display: block;
+}
+
+#showPhoto ul li{
+	width: 30%;
+	height: 190px;
+	display: inline-block;
+	margin: 0px 2px;
+	text-align: center;
+}
+
+#showPhoto ul li img{
+	width: 100%;
+	height: 170px;
+}
+
+#showPhoto ul li a{
+	width: 100%;
+	height: 20px;
+	text-align: center;
+	color: #666;
+}
+
+#showPhoto div{
+	width: 30%;
+	height: 100%;
+}
+
+#mobile-table{
+	width: 90%;
+	text-align: center;
+	font-size: 14px;
+	border-bottom: 1px solid #c4c4c4;
+	vertical-align: middle;
+	position: relative;
+	margin: 10px 40px;
+	font-weight: normal;
+	border-collapse: collapse;
+	margin: 10px 26px;
+}
+
+#work-div table{
+	margin: 10px 40px;
+}
+
+#mobile-table tr th{
+	font-weight: normal;
+	height: 40px;
+	border-bottom: 1px solid #c4c4c4;
+}
+
+#mobile-table tr{
+	background: #FFFFFF;
+	height: 20px;
+}
+
+#mobile-table td{
+	vertical-align: middle;
+	word-wrap: break-word;
+	word-break: break-all;
+	color: #666;
+}
+
+#mobile-table td:first-child{
+	width: 100px;
+	color: #333;
+}
+
+#dd-table{
+	width: 90%;
+	border-collapse: collapse;
+	border-bottom: 1px solid #c4c4c4;
+	text-align: center;
+	color: #666;
+}
+
+#dd-table td:first-child{
+	color: #333;
+}
+
+#wc-table{
+	width: 90%;
+	border-collapse: collapse;
+	border-bottom: 1px solid #c4c4c4;
+	color: #666;
+	text-align: center;
+}
+
+.closeBtn2{
+	float: right;
+	display: block;
+	position: absolute;
+	right: -10px;
+	top: -10px;
+}
+
+/************************/
+#paging-div .selecting{
+	width: 20px;
+	height: 20px;
+	background: #6ADCA1;
+	color: #FFF;
+	cursor: auto;
+}
+
+#paging-div{
+	width: 100%;
+	height: 40px;
+	margin-top: 10px;
+	line-height: 40px;
+}
+
+#paging-div a{
+	padding:4px 6px;
+	cursor: pointer;
+	color: #666;
+}
+
+.button-div{
+	width: 100%;
+	height: 30px;
+	vertical-align: middle;
+	padding-left: 16px;
+	padding-top: 20px;
+}
+
+.button-div p{
+	display: inline-block;
+}

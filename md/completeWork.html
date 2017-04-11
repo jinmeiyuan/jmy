@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>作业完成查询</title>
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	
+
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+	<link rel="stylesheet" type="text/css" href="../css/md/completeWork.css" />
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../js/jeDate/jedate.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+</head>
+<body>
+	<div id="top-div">	
+		<table>
+			<tr>
+				<td><p>选择分组</p></td>
+				<td><select class="easyui-combotree" name="groupname" id="ttSelect" /></td>
+				<td><p>开始日期</p></td>
+				<td><input class="datainp" id="startDate" type="text" placeholder="选择开始时间"  readonly style="cursor:pointer;"></td>
+				<td><p>结束日期</p></td>
+				<td><input class="datainp" id="endDate" type="text" placeholder="选择结束时间"  readonly style="cursor:pointer;"></td>				
+				<td><button id="searchBtn">查询</button></td>
+				<td><button id="delMoreBtn">批量删除</button></td>
+				<td><button id="exportBtn">导出</button></td>
+			</tr>
+		</table>			
+	</div>
+	<div id="content-div">
+		<table id="one-table" style="display:block">
+			<tr>
+				<th width="20"><input type="checkbox" onclick="onClickHandler(this)" /></th>
+				<th width="60">序号</th>
+				<th width="150">车间</th>
+				<th width="150">作业类型</th>
+				<th width="150">作业性质</th>
+				<th width="150">计划号</th>
+				<th width="150">作业时间</th>
+				<th width="200">线别</th>
+				<th width="200">作业区间</th>
+			</tr>				
+		</table>
+	</div>
+	<div id="paging-div">
+	</div>
+	<div id="table-div">
+		<p>作业信息</p>
+		<table>
+			<tr class="top-border">
+				<td>作业类型:</td>
+				<td id="worktype-td"></td>
+				<td>车间:</td>
+				<td id="groupname-td"></td>
+			</tr>
+			<tr>
+				<td>线别:</td>
+				<td id="linename-td"></td>
+				<td>登记站:</td>
+				<td id="regstation-td"></td>
+			</tr>
+			<tr>
+				<td>作业依据:</td>
+				<td id="planno-td"></td>
+				<td>作业项目:</td>
+				<td id="name-td"></td>
+			</tr>
+		</table>
+		<table>
+			<tr>
+				<td width="80px">作业开始时间:</td>
+				<td id="start-td"></td>					
+			</tr>
+			<tr>
+				<td>作业结束时间:</td>
+				<td id="end-td"></td>
+			</tr>
+		</table>
+		<table>
+			<tr class="top-border">
+				<td width="200px">作业区间（点）:</td>
+				<td id="range-td"></td>					
+			</tr>
+			<tr>
+				<td>作业区间、公里标:</td>
+				<td id="glb-td"></td>					
+			</tr>
+		</table>
+		<table>
+			<tr class="top-border">
+				<td width="60px">作业内容:</td>
+				<td id="content-td"></td>					
+			</tr>
+		</table>	
+		<div class="button-div">
+			<p>允许上道号：</p>
+			<p id="allowNoTxt"></p>	
+		</div>
+			
+	</div>
+	<div id="window-div">
+		<img src="../css/image/段控作业图标/关闭.png" id="closeBtn2" class="closeBtn2"></img>		
+		<div id="work-div">			
+			<table id="mobile-table">
+				<tr>
+					<th width="80px">人员</th>
+					<th>号码</th>
+					<th>到达时间</th>
+					<th>确认时间</th>
+				</tr>
+				<tr>
+					<td>把关干部</td>
+					<td id="bgmanMobile"></td>
+					<td id="bgmanArr"></td>
+					<td rowspan="4" id="confirmtime"></td>
+				</tr>
+				<tr>
+					<td>现场防护员</td>
+					<td id="xcmanmobile"></td>
+					<td id="xcmanarr"></td>
+				</tr>
+				<tr>
+					<td>作业责任人</td>
+					<td id="fzmanmobile"></td>
+					<td id="fzmanarr"></td>
+				</tr>
+				<tr>
+					<td>驻站联络员</td>
+					<td id="zzmanmobile"></td>
+					<td id="zzmanarr"></td>
+				</tr>
+			</table>
+			<table id="dd-table">
+				<tr>
+					<td width="100px">登销记情况:</td>
+					<td id="dxflag-td"></td>
+				</tr>
+			</table>
+			<table id="wc-table">
+				<tr>
+					<td width="320px" style="color:#333">卡控结束时间</td>
+					<td rowspan="2" id="finsh-div" height="80px"></td>
+				</tr>
+				<tr>
+					<td id="remark-td"></td>
+				</tr>
+			</table>
+			<div id="showPhoto">
+				<ul>
+				</ul>
+			</div>
+			
+		</div>
+	</div>
+	<div id="shade-div" > 		
+	</div>
+</body>
+
+<script type="text/javascript">
+	var groupTreeArr = JSON.parse(localStorage.getItem("groupTreeArr"));
+	var sessionid = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var selectGroup;
+	var h =	document.body.clientHeight;
+	var tableNum = Math.floor((h-130)/40);
+
+	var workArr = [];
+	var delArr = [];
+	var successDelNum = 0;
+	var exportArr = [];
+	$(function(){				
+		$("#ttSelect").combotree({
+			formatter:function(node){
+				return node.groupname;
+			},
+			onSelect:function(node){
+				selectGroup = node;
+				setTimeout(function(){setSelect(selectGroup),300});			
+			},
+			required:true,
+		});
+
+		$("#ttSelect").combotree('loadData',groupTreeArr);
+		$("#ttSelect").combotree("setValue",groupTreeArr[0].groupname);
+		selectGroup = groupTreeArr[0];
+
+		$("#searchBtn").bind('click',function(){
+			searchFun();
+		});
+
+		$("#closeBtn").bind('click',function(){
+			closeWin();
+		});
+
+		setPrevBtn();
+		
+		$('.closeBtn2').bind('click',function(){
+			closeWin();
+		});
+		addEmpty();
+
+		$("#delMoreBtn").click(function(){
+			delMoreFun();
+		});
+
+		$("#exportBtn").click(function(){
+			exportArr = [];
+			exportToExcelFun();
+		});
+
+		initDate();
+
+	});
+
+	function exportToExcelFun(){
+		for (var i = 0; i < workArr.length; i++) {
+			var obj = workArr[i];
+			var item = {
+				"序号" : (i+1)+"",
+				"作业日期" : obj.workdate || "",
+				"车间" : obj.groupname || "",
+				"作业类型" : obj.worktype || "",
+				"计划号" : obj.planno || "",
+				"作业开始时间" : obj.starttime || "",
+				"作业结束时间" : obj.endtime || "",
+				"线别" : obj.linename || "",
+				"登记站": obj.regstation || "",
+				"把关干部手机": obj.bgmanmobile || "",
+				"作业负责人手机": obj.fzmanmobile || "",
+				"驻站联络员手机" : obj.zzmanmobile || "",
+				"现场防护员手机": obj.xcmanmobile || "",
+				"作业项目": obj.workname || "",
+				"作业区间点": obj.workrange || "",
+				"作业区间点公里标": obj.workglb || "",
+				"作业内容" : obj.workcontent || "",
+				"备注" : obj.remark || ""
+			}
+			exportArr.push(item);
+		}
+		if(exportArr.length>0){
+			var exportA = {
+				list : JSON.stringify(exportArr)
+			}
+			var xmlStr = WorkJsonToExcel(sessionid,ver,exportA);
+			$.ajax({
+				url : requrl,
+				type : "POST",
+				dataType : "json",
+				data : xmlStr,
+				success : function(data){
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						var msg = eval('('+jsonObj.msgbody+')');
+						if(window.location.href.indexOf("192.168.2.2") != -1){
+							window.location.href = msg.内网;
+						}
+						else{
+							window.location.href = msg.外网;
+						}
+					}
+					else{
+						alert("导出失败:"+jsonObj.error);
+					}
+				},
+				error:function(XMLHttpRequert,textStatus,errorThrown){
+					alert("导出失败："+errorThrown);
+				}
+			});
+		}
+		else{
+			alert("当前无数据可导出");
+		}
+	}
+
+	function delMoreFun(){
+		var checks = document.getElementsByName("selectCheck");
+
+		for (var i = 0; i < checks.length; i++) {
+			if(checks[i].checked){
+				var tr = checks[i].parentNode.parentNode;
+				var item ={
+					id : tr.id
+				}
+				delArr.push(item);
+			}
+		}
+		if(delArr.length>0){
+			if(confirm("确定删除选中的数据？")){
+				$("#shade-div").css("display","block");
+				successDelNum = 0;
+				delMFun(0);
+			}
+		}
+	}
+
+	function delMFun(num){
+		var xmlStr = RWWorkDel(sessionid,ver,delArr[num]);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){		
+					$("#"+delArr[num].id).remove();
+					successDelNum += 1;				
+				}
+				else{
+				}
+				if(num == delArr.length-1){
+					searchFun();
+					alert("成功删除"+(successDelNum)+"条");
+					delArr = [];
+					$("#shade-div").css("display","none");
+				}
+				else{
+					delMFun(num+1);
+				}
+			}
+		});
+	}
+
+	jeDate({
+		dateCell:"#startDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	jeDate({
+		dateCell:"#endDate",
+		format:"YYYY-MM-DD hh:mm:ss",
+		isTime:true
+	})
+
+	function addEmpty(){		
+		var trlength = $("#one-table tr").length;
+		for(trlength;trlength < tableNum+1;trlength++){
+			$("#content-div table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td></td><td class="right-td"></td></tr>');
+		}
+	}
+
+	/**checkbox的click事件**/
+	function onClickHandler(obj){
+		if(obj.checked){
+			$("[name = 'selectCheck']").prop("checked","true");
+		}
+		else{
+			$("[name = 'selectCheck']").removeAttr("checked");
+		}
+	}
+
+	/*鼠标移动**/
+	function setPrevBtn(){
+		var oBtnPrev = $("#showPhoto .prev");
+		
+		var lis = $("#showPhoto ul li");
+
+		oBtnPrev.mouseover(function(){
+			var length = $("#showPhoto ul li").length;
+			if(length>3){
+				oBtnPrev.css("opacity",40);
+			}			
+		}).mouseout(function(){
+			var length = $("#showPhoto ul li").length;
+			if(length>3){
+				oBtnPrev.css("opacity",0);
+			}			
+		});
+
+		oBtnPrev.bind('click',function(){
+			var length = $("#showPhoto ul li").length;
+			if(length>3){
+				$("#showPhoto ul").append($("#showPhoto ul li:eq(0)"));
+			}
+		});
+	}
+
+	function closeWin(){
+		$("#window-div").css("display","none");
+		$("#shade-div").css("display","none");
+		$("#table-div").css("display","none");
+	}
+
+	/**初始化时间**/
+	function initDate(){
+		var mydate = new Date();
+		var yesDate = new Date(mydate.getFullYear(),mydate.getMonth(),mydate.getDate()-1);
+
+		$("#startDate").val(yesDate.getFullYear()+"-"+getTwoNum(yesDate.getMonth()+1)+"-"+getTwoNum(yesDate.getDate())+" "+getTwoNum(mydate.getHours())+":"+getTwoNum(mydate.getMinutes())+":"+getTwoNum(mydate.getSeconds()));
+		$("#endDate").val(mydate.getFullYear()+"-"+getTwoNum(mydate.getMonth()+1)+"-"+getTwoNum(mydate.getDate())+" "+getTwoNum(mydate.getHours())+":"+getTwoNum(mydate.getMinutes())+":"+getTwoNum(mydate.getSeconds()));
+	}
+
+	function setSelect(sg){
+		$("#ttSelect").combotree("setValue",sg.groupname);
+	}
+
+	/**点击查询按钮**/
+	var searchFun = function(){
+		if(selectGroup == null){
+			alert("请选择分组");
+			return;
+		}
+		if($("#startDate").val() == "" || $("#endDate").val() == ""){
+			alert("查询时间不能为空");
+			return;
+		}
+		if($("#startdate").val() > $("#endDate").val()){
+			alert("开始时间不能晚于结束时间");
+		}
+		$("#searchBtn").css("disabled",true);
+		var item = {
+			kzkind : "",
+			groupid : selectGroup.groupid,
+			startdate : $("#startDate").val(),
+			enddate : $("#endDate").val(),
+			worktype : ""
+		}
+		var xmlStr = RWWorkQuery(sessionid,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				clearTable();
+				workArr = [];
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.length; i++) {
+						workArr.push(msg[i].work);
+					}	
+					addToArr(0);
+					addPaging();
+					addEmpty();	
+					addClickFun();		
+				}
+				else{
+					alert("作业查询失败："+jsonObj.error);
+				}
+				$("#searchBtn").css("disabled",false);
+			}
+		});
+		$("#content-div table tr td").mousemove(function(){
+			this.setAttribute("title",this.innerText);
+		});	
+	}
+
+	/**清空表格**/
+	function clearTable(){
+		$("#one-table tr:not(:first)").remove("");
+	}
+	
+	function addToArr(num){
+		for (var i = tableNum*num; i < workArr.length && i < tableNum*(num+1); i++) {
+			var obj = workArr[i];
+					
+			$("#one-table").append('<tr onclick="getDetail(\''+obj.workid+'\')" id="'+obj.workid+'"><td class="aTd"><input type="checkbox" name="selectCheck"  /></td><td>'+(i+1)+'</td><td>'+obj.groupname+'</td><td>'+obj.worktype+'</td><td>'+obj.remark+'</td><td>'+obj.planno+'</td><td>'+obj.workdate+'</td><td>'+obj.linename+'</td><td>'+obj.workrange+'</td>');
+		}		
+	}
+
+	function addClickFun(){
+		$(".aTd").bind('click',function(e){
+			e.stopPropagation();					
+		});
+	}
+
+	function addPaging(){
+		$("#paging-div").empty();
+		if(workArr.length > tableNum){
+			var poiLength = (workArr.length/tableNum);
+			$("#paging-div").append('<a onclick="clickAFun(1)">首页</a>');
+			for(var i = 0 ; i < poiLength ; i++){
+				$("#paging-div").append('<a onclick="clickAFun('+(i+1)+')" id="a'+(i+1)+'">'+(i+1)+'</a>');
+				if(i == 0){
+					$("#a1").addClass("selecting")
+				}
+			}
+			$("#paging-div").append('<a onclick="clickAFun('+(Math.ceil(poiLength))+')">尾页</a>');
+		}
+	}
+
+	function clickAFun(num){
+		if($("#a"+num).hasClass("selecting")){
+
+		}
+		else{
+			$("#paging-div a").removeClass("selecting");
+			$("#a"+num).addClass("selecting");
+			clearTable();
+			addToArr(num-1);
+			addEmpty();
+		}
+		addClickFun();
+	}
+
+	function getDetail(wid){
+		var item = {
+			workid:wid,
+			url : window.location.href
+		}
+		
+		var xmlStr = RWWorkGetX(sessionid,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					$("#window-div").css("display","block");
+					$("#shade-div").css("display","block");
+					$("#table-div").css("display","block");
+					$("#showPhoto ul").find("li").remove();
+					var obj = eval('('+jsonObj.msgbody+')');
+					inputData(obj);				
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}		
+		});
+	}
+
+	function inputData(obj){	
+		$("#worktype-td").text(obj.worktype);
+		$("#groupname-td").text(obj.groupname);		
+		$("#linename-td").text(obj.linename);
+		$("#regstation-td").text(obj.regstation);
+		$("#planno-td").text(obj.planno);
+		$("#name-td").text(obj.name);
+		$("#start-td").text(obj.start);
+		$("#end-td").text(obj.end);
+		$("#range-td").text(obj.workrange);
+		$("#glb-td").text(obj.workglb);
+		$("#content-td").text(obj.workcontent);	
+
+		$("#bgmanMobile").text(obj.bgmanmobile);
+		$("#bgmanArr").text(obj.bgmanarr);
+		$("#fzmanmobile").text(obj.fzmanmobile);
+		$("#fzmanarr").text(obj.fzmanarr);
+		$("#xcmanmobile").text(obj.xcmanmobile);
+		$("#xcmanarr").text(obj.xcmanarr);
+		$("#zzmanmobile").text(obj.zzmanmobile);
+		$("#zzmanarr").text(obj.zzmanarr);
+
+		$("#finsh-div").text(obj.finishtime);
+		$("#remark-td").text(obj.worklog);
+		$("#allowNoTxt").text(obj.allowno);
+
+		if(obj.dxflag == "1" ){
+			$("#dxflag-td").text("无登记"+"   "+obj.dxtime);
+		}
+		else if(obj.dxflag == "2"){
+			$("#dxflag-td").text("有登记"+"   "+obj.dxtime);
+		}
+		
+
+		if (obj.ddqrflag == "0"  || obj.ddqrflag == 0) {
+			$("#confirmtime").text("未确认");
+		}
+		else{
+			$("#confirmtime").text(obj.ddqrtime);								
+		}		
+
+		var photoImg = eval(obj.photo);
+		if(photoImg.length>0){
+			for(var i = 0;i<photoImg.length;i++){
+				var confirmTxt = "";
+				if(photoImg[i].confirmflag == "0"){
+					confirmTxt = "未确认";
+				}
+				else{
+					confirmTxt = photoImg[i].confirmtime;
+				}
+				$("#showPhoto ul").append('<li><img src="'+photoImg[i].photourl+'"></img><a>'+confirmTxt+'</a></li>');
+			}
+		}
+	}
+
+</script>
+</html>

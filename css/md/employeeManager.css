@@ -1,0 +1,30 @@
+/**表格样式**/
+#content-div table{
+	margin: 20px 10px;
+	border: 0px solid #c4c4c4;
+	border-collapse: collapse;
+	width: 100%;
+	height: 100%;
+	color: #666;
+	font-size: 14px;
+	font-weight: normal;
+	text-align: center;
+}
+
+#content-div table th{
+	border-bottom: 1px solid #c4c4c4;
+	height: 40px;
+	margin: 0px;
+	background: #ffffff;
+	color: #333;
+	font-weight: normal;
+}
+
+
+#content-div table tr:nth-child(odd){
+	background: #e2edf2;
+}
+
+#content-div table tr:nth-child(even){
+	background: #FFFFFF;
+}

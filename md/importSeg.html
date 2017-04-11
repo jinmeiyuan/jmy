@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>导入作业</title>
+	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/importSeg.css">
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+</head>
+<body>
+<div id="main-div">
+	<div id="main-top-div">
+		<input type="file" id="files" value="选择文件" />
+		<input type="button" onclick="readExcel();" value="读取文件内容" />
+		<input type="button" value="添加作业"  onclick="verifyGlb()" />
+	</div>
+	<div id="main-content-div" style="padding-right:30px;">
+		<table id="one-table">
+			<tr style="height:50px">
+				<th width="50px">序号</th>
+				<th width="60px">作业日期</th>
+				<th>车间</th>
+				<th>作业类型</th>
+				<th>计划号</th>
+				<th>计划开始时间</th>
+				<th>计划结束时间</th>
+				<th>线别</th>
+				<th>登记站</th>
+				<th>把关干部手机</th>
+				<th>作业负责人手机</th>
+				<th>驻站联络员手机</th>
+				<th>现场防护员手机</th>
+				<th>作业项目</th>
+				<th>作业区间</th>
+				<th>点公里标</th>
+				<th>作业内容</th>
+				<th>备注</th>
+			</tr>				
+		</table>
+	</div>
+	<div id="shade-div" > 		
+	</div>
+	<div class="progressbar">
+		<div class="bar"><p>50%</p></div>
+	</div>
+	
+</div>
+<script type="text/javascript">
+ 	var sendArr = [];
+ 	var groupArr = [];
+ 	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var importurl = localStorage.getItem("importurl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+
+	function readExcel(){		
+		var formdata = new FormData();
+		console.log(formdata);
+
+		if($('input[type=file]')[0].files.length == 0){
+			alert('请选择一个文件上传');
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[0].files[0]);
+		$.ajax({
+			url:importurl,
+			type:'POST',
+			data:formdata,
+	        processData:false,
+	        contentType:false,
+			success:function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					clearTable();
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for(var i = 0;i<msgObj.length;i++){
+						createTable(msgObj[i]);
+					}
+					addEvent();
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+
+		if(groupArr.length == 0){
+			getGroup();
+		}
+	}
+
+	/**校验公里标**/
+	function verifyGlb(){
+		if(sendArr.length>0){
+			var item = {
+				datatype : "GLB",
+				datavalue : []
+			};
+			for (var i = 0; i < sendArr.length; i++) {
+				var a = {
+					index : (i+1)+"",
+					data : sendArr[i].glb
+				}
+				item.datavalue.push(a);
+			}
+
+			var xmlStr = QWDataVerify(sessionId,ver,JSON.stringify(item));
+			$.ajax({
+				url : requrl,
+				type : "POST",
+				dataType : "json",
+				data : xmlStr,
+				success : function(data){
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						var msgObj = eval('('+jsonObj.msgbody+')');
+						var a = "";
+						for (var i = 0; i < msgObj.result.length; i++) {
+							if(msgObj.result[i].verify === 0){
+								a += "【"+msgObj.result[i].index+"】";
+							}
+						}
+						if(a !== ""){
+							alert("第"+a+"条作业公里标格式不正确,请检查后重新导入");
+						}
+						else{
+							sendExcel();
+						}
+					}
+					else{
+						alert(jsonObj.error);
+					}
+				}
+			});
+		}
+	}
+
+	/**增加表格的事件**/
+	function addEvent(){
+		$("#one-table tr td").mousemove(function(){
+			this.setAttribute("title",this.innerText);
+		});	
+	}
+
+	function getGroup(){
+		var xmlStr = RWGroupGet(sessionId,ver,pid);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						groupArr.push(msgObj[i].group);
+					}			
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	/**清空表格**/
+	function clearTable(){
+		$("#one-table tr:not(:first)").remove("");
+		sendArr.length = 0;
+	}
+
+	function createTable(item){
+		if((item.序号 || "") ==""){
+			return;
+		}
+		var tabLength = $("#one-table tr").length;
+		var obj = {
+			id : newGuid(),
+			name : item.作业项目 || "",
+			planno : item.计划号 || "",
+			gid :getGroupNameByName(item.车间) || "",
+			worktype:item.作业类型 || "",
+			starttime :item.计划开始时间 || "",
+			endtime : item.计划结束时间 || "",
+			linename:item.线别 || "",
+			regstation:item.登记站 || "",
+			range : item.作业区间点 || "",
+			glb : item.作业区间点公里标 || "",
+			content : item.作业内容 || "",
+			remark :item.备注 || "",
+			bgmanmobile : item.把关干部手机 || "",
+			fzmanmobile : item.作业负责人手机 || "",
+			zzmanmobile : item.驻站联络员手机 || "",
+			xcmanmobile : item.现场防护员手机 || "",
+			gname : item.车间 || "",
+			kzkind : "0",
+			workdate : item.作业日期 || ""
+		}
+
+		sendArr.push(obj);
+		$("#one-table").append('<tr><td>'+tabLength+'</td>'+
+			'<td>'+item.作业日期+'</td><td>'+
+			obj.gname+'</td><td>'+
+			obj.worktype+'</td><td>'+
+			obj.planno+'</td><td>'+
+			obj.starttime+'</td>'+
+			'<td>'+obj.endtime+'</td><td>'+obj.linename+'</td><td>'+obj.regstation+'</td><td>'+obj.bgmanmobile+'</td><td>'+obj.fzmanmobile+'</td><td>'+obj.zzmanmobile+'</td><td>'+obj.xcmanmobile+'</td><td>'+obj.name+'</td><td>'+
+			obj.range+'</td><td>'+obj.glb+'</td><td>'+obj.content+'</td><td>'+obj.remark+'</td></tr>');
+	}
+
+	function sendExcel(){
+		for (var j = 0; j < sendArr.length; j++) {
+			if(sendArr[j].gid == ""){
+				layer.open({
+					title:false,
+					content:"第"+(j+1)+"条数据找不到车间信息",
+					offset:[200,0]
+				});
+				return;
+			}
+		}
+		var successNum = 0;
+		$("#shade-div").show();
+		$(".progressbar").show();
+		$(".progressbar .bar").width("0%");
+		$(".progressbar .bar p").val("0%");
+
+		addWork(0,0);
+	}
+
+	function addWork(num,successNum){
+		$(".progressbar .bar").width((num+1)/(sendArr.length));
+		$(".progressbar .bar p").val((num+1)+"/"+(sendArr.length));
+		var xmlStr = RWWorkAdd(sessionId,ver,sendArr[num]);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0" ){
+					successNum += 1;
+				}	
+				else{
+					layer.open({
+						title:false,
+						content:"第"+num+"条数据导入失败："+jsonObj.error,
+						offset:[200,0]			
+					});
+				}
+
+				if(num == sendArr.length-1){
+					layer.open({
+						title:false,
+						content:"导入"+successNum+"条数据",
+						offset:[200,0]
+					});
+					hideProgress();
+				}else{
+					addWork(num+1,successNum);
+				}	
+
+				
+			}				
+		});
+	}
+
+	function hideProgress(){
+		$("#shade-div").hide();
+		$(".progressbar").hide();
+	}
+
+	/**生成GUID值**/
+	function newGuid(){
+		var guid = "";
+		for(var i=0;i<32;i++){
+			var n = Math.floor(Math.random()*16.0).toString(16);
+			guid += n;
+			if((i==7 || i ==11 || i ==15 || i==19)){
+				guid += "-";
+			}
+		}
+		return guid;
+	}
+
+	function getGroupNameByName(str){
+		for(var i=0;i<groupArr.length;i++){
+			if(groupArr[i].groupname == str){
+				return groupArr[i].groupid;
+			}
+		}
+		return "";
+	}
+
+</script>
+</body>
+</html>

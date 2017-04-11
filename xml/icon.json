@@ -1,0 +1,9 @@
+{
+	"icon":[
+		{"url":"icon/icon1.png","name":"图标1"},
+		{"url":"icon/icon2.png","name":"图标2"},
+		{"url":"icon/icon3.png","name":"图标3"},
+		{"url":"icon/icon4.png","name":"图标4"},
+		{"url":"icon/icon5.png","name":"图标5"}
+	]
+}

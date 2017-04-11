@@ -1,0 +1,47 @@
+html{
+	height: 100%;
+}
+
+body{
+	height: 100%;
+}
+
+#main-div{
+	display: none;
+}
+
+#select-div{
+	position: fixed;
+	top: 230px;
+	left: 450px;
+	width: 250px;
+	height: 90px;
+	background: #FFFFFF;
+	z-index: 50;
+}
+
+#select-div p{
+	font-size: 16px;
+	line-height: 36px;	
+}
+
+#button-div p{
+	display: inline-block;
+	margin-left: 40px;
+}
+
+#select-div select{
+	width: 240px;
+	height: 36px;
+	display: inline-block;
+	border: 1px solid #c4c4c4;
+}
+
+#main-div{
+	height: 100%;
+}
+
+#table-div{
+	height: calc(100% - 60px);
+	overflow-y: auto;
+}

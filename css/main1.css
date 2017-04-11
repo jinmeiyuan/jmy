@@ -1,0 +1,160 @@
+body,html{
+	padding: 0;
+	border: 0;
+	margin: 0;
+	height: 100%;
+	overflow-y: hidden;
+}
+
+*{
+	margin: 0;
+	padding: 0;
+}
+
+#main-panel{
+	width: 100%;
+	height: 100%;
+}
+
+#left-panel{
+	float: left;
+	width: 15%;
+	height: 100%;
+}
+
+#left-top-panel{
+	height: 40px;
+	width: 100%;
+	background-color: #536ab3;
+	border-bottom: 1px solid #28186c;
+}
+
+#left-middle-panel{
+	height: 50px;
+	width: 100%;
+	background-color: #3e5770;
+}
+
+#left-bottom-panel{
+	width: 100%;
+	background-color: #3e5770;
+	height: 100%;
+	margin: 0px auto 0px;
+	padding-top: 0px;
+	border: 0px solid #ccc;
+	background-color: #3e5770;
+}
+
+#left-bottom-panel div{
+	width: 100%;
+	padding: 0px;
+	margin: 0px auto;
+	border:0px;
+}
+
+#left-bottom-panel p{
+	height: 50px;
+	line-height: 50px;
+	vertical-align: middle;
+	background-color: #3e5770;
+	border-bottom: 0px;
+	cursor: pointer;
+	padding-left: 5px;
+	color: #FDFEFD;
+	padding-left: 20px;
+	vertical-align: middle;
+}
+
+#left-bottom-panel div ul{
+	display: none;
+	background-color: #2c3f50;
+	padding: 0px;
+	margin: 0px;	
+}
+
+#left-bottom-panel li{
+	height: 40px;
+	line-height: 40px;
+	list-style: none;
+}
+
+
+#left-bottom-panel li a{
+	color: #FDFEFD;
+	text-decoration: none;
+	padding-left: 40px;
+	font-size: 14px;
+}
+
+#left-bottom-panel li.active > a{
+	background: url(image/menu-active.png) no-repeat scroll right center transparent;
+}
+
+#left-bottom-panel li a:hover{
+	background-color: #212e39;
+	display: block;
+}
+
+#left-bottom-panel div p img{
+	width: 20px;
+	height: 20px;
+	vertical-align: middle;
+	margin-right: 12px;
+}
+
+#left-bottom-panel .selectedP{
+	background-color: #2c3f50;
+}
+
+/****************右边区域********************/
+#right-panel{
+	display: inline;
+	width: 85%;
+	height: 100%;
+}
+#right-top-panel{
+	height: 40px;
+	width: 85%;
+	background-color: #7b96f6;
+	float: left;
+	display: inline;
+}
+
+#right-top-panel p{
+	color: #FDFEFD;
+	font-family: "汉仪意宋","宋体";
+	font-size: 20px;
+	line-height: 40px;
+	vertical-align: middle;
+	margin: 0px;
+	padding-left: 10px;
+}
+
+#container{
+	width: 85%;
+	height: 100%;
+	border: 0px solid black;
+	display: inline;
+	float: left;
+}
+
+#tab1{
+	width: 100%;
+	height: 1000px;
+}
+
+.tabs-panels{
+	height: calc(100% - 70px);
+}
+
+
+.panel-body{
+	overflow-y: hidden;
+}
+
+#back-img{
+	position: absolute;
+	left: 50px;
+	top: 14px;
+	z-index: 2;
+}

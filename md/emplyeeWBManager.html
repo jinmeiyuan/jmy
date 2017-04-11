@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>值班管理</title>
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css" />
+	
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/default/easyui.css" />
+	<link rel="stylesheet" type="text/css" href="../js/easyui/themes/icon.css"/>
+	<link rel="stylesheet" type="text/css" href="../css/md/groupManager.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/employWB.css" />
+
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+</head>
+<body>
+	<div id="shade-div" > 		
+	</div>
+	<div id="mainDiv">
+		<div id="title-div">
+			<p>当前值班干部</p>
+		</div>
+		<div id="top-div">
+			<div id="getEmployBtn" class="button-div"><img src="../css/image/icon/refresh.png"/><a>获取值班干部</a></div>
+			<div id="setEmployBtn" class="button-div"><img src="../css/image/icon/edit.png"/><a>设置值班干部</a></div>
+		</div>
+		<div id="tt-div">
+			<ul class="easyui-tree" id="tt">
+       		
+    		</ul>
+		</div>
+
+	</div>
+	<div id="person-div">
+		<div id="search-div">
+			<p>选择日期</p>
+			<input type="text" class="easyui-datebox" id="selectDate" />
+			<input type="button" value="查询" id="searchBtn" />
+		</div>
+		<div id="table-div">
+			<table id="one-table" class="one-table">
+				<tr style="height:38px">
+					<th width="80px">序号</th>
+					<th>所属分组</th>
+					<th>值班人员</th>
+					<th>手机状态1</th>
+					<th>手机状态2</th>
+					<th>手机状态3</th>
+				</tr>				
+			</table>
+		</div>
+	</div>
+</body>
+<script type="text/javascript">
+	var sessionid = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var groupArr = JSON.parse(localStorage.getItem("groupArr"));
+	var groupTreeArr = JSON.parse(localStorage.getItem("groupTreeArr"));
+	var employeeArr = [];
+	var employeeSelectArr = []; //当前值班人员
+	$(function(){
+		if(groupTreeArr == null  || groupTreeArr.length == 0){
+			groupArr = [];
+			groupTreeArr = [];
+			getGroup();
+		}
+		else{
+			getEmployee();
+		}
+
+		$("#getEmployBtn").click(function(){
+			getEmploy();
+		}).mouseover(function(){
+			$("#getEmployBtn").removeClass('button-div').addClass('button-select-div');
+		}).mouseout(function(){
+			$("#getEmployBtn").removeClass('button-select-div').addClass('button-div');
+		});
+
+		$("#setEmployBtn").click(function(){
+			setEmploy();
+		}).mouseover(function(){
+			$("#setEmployBtn").removeClass('button-div').addClass('button-select-div');
+		}).mouseout(function(){
+			$("#setEmployBtn").removeClass('button-select-div').addClass('button-div');
+		});
+
+		addEmpty();
+
+		$("#searchBtn").click(function(){
+			searchFun();
+		});
+		initDate();
+	});
+
+	function initDate(){
+		var mydate = new Date();
+		$("#selectDate").datebox('setValue',mydate.getFullYear()+"-"+(mydate.getMonth()+1)+"-"+mydate.getDate());
+	}
+
+	function addEmpty(){
+		var trlength = $("#one-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#one-table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+	function searchFun(){
+		var item = {
+			date : $("#selectDate").datebox('getValue')
+		}
+		var xmlStr = RWWatchBillQuery(sessionid,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data : xmlStr,
+			success : function(data){				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for(var i = 0;i<msgObj.length;i++){
+						addToTable(msgObj[i].watchbill);
+					}
+					addEmpty();	
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function addToTable(obj){
+		var tabLength = $("#one-table tr").length;
+		$("#one-table").append('<tr><td>'+tabLength+'</td><td>'+obj.groupname+'</td><td>'+obj.pname+'</td><td>'+
+						obj.mstatus1+'</td><td>'+obj.mstatus2+'</td><td>'+obj.mstatus3+'</td>');					
+	}
+
+	/**清空表格**/
+	function clearTable(){
+		$("#one-table tr:not(:first)").remove("");
+	}
+
+	/***获取分组***/
+	function getGroup(){
+		var xmlStr = RWGroupGet(sessionid,ver,pid);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data : xmlStr,
+			success : function(data){				
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].group.children=[];
+						groupArr.push(msgObj[i].group);
+					}
+
+					for (var j = 0; j < groupArr.length; j++) {
+						TranTree(groupTreeArr,groupArr[j]);
+					}
+					getEmployee();
+					
+					var arr = JSON.stringify(groupArr);
+					localStorage.setItem("groupArr",arr);
+					localStorage.setItem("groupTreeArr",JSON.stringify(groupTreeArr));
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function getEmployee(){
+		var xmlStr = RWEmployeeGet(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					employeeArr = [];
+					selectPerson = null;
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].employee.groupno = getGroupNoById(msgObj[i].employee.groupid,groupArr);
+						msgObj[i].employee.id = msgObj[i].employee.pid;
+						employeeArr.push(msgObj[i].employee);
+					}
+					getGroupTree();
+				}
+			}
+		});
+	}
+
+	/******获取值班干部*********/
+	function getEmploy(){
+		var xmlStr = RWGetEmplyeeWB(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){	
+					employeeSelectArr = [];				
+					var msgObj = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msgObj.length; i++) {
+						msgObj[i].employeewb.pname = getPNameByPId(msgObj[i].employeewb.PID);
+						employeeSelectArr.push(msgObj[i].employeewb)						
+					}
+					checkFun(groupTreeArr,employeeSelectArr);
+				}
+			}
+		});
+	}
+
+	function getPNameByPId(pid){
+		for(var i=0;i<employeeArr.length;i++){
+			if(employeeArr[i].pid == pid){
+				return employeeArr[i].pname;
+			}
+		}
+	}
+
+	function checkFun(arr,selectArr){
+		var node = $('#tt').tree('find',arr[0].id);
+		$("#tt").tree('uncheck',node.target)
+		for(var j = 0;j<selectArr.length;j++){
+			var node = $('#tt').tree('find',selectArr[j].PID);
+			$("#tt").tree('check',node.target);
+		}
+		/**for(var i = 0;i<arr.length;i++){
+			if("children" in arr[i]){
+				checkFun(arr[i].children,selectArr);
+			}
+			else{
+				for(var j = 0;j<selectArr.length;j++){
+					var node = $("#tt").tree('find',selectArr[j].PID);
+					$("#tt").tree('check',node.target);
+				}
+				
+			}
+		}**/
+
+	}
+
+	/*********设置值班干部**********/
+	function setEmploy(){
+		var item = [];
+		getNodes(item,$("#tt").tree("getChecked"));
+		if(item.length == 0){
+			alert("当前选中结果不包括人员");
+			return;
+		}
+		var xmlStr = RWSetEmplyeeWB(sessionid,ver,item);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data){
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){					
+					alert("设置值班干部成功");
+				}
+				else{
+					alert("设置值班干部失败");
+				}
+			}
+		});
+	}
+
+	function getNodes(arr,arry){
+		for(var i = 0 ; i < arry.length ; i++){
+			if("children" in arry[i]){
+				
+			}
+			else{
+				var poikind ={
+					pid : arry[i].pid
+				}
+				arr.push(poikind);
+			}
+		}
+	}
+
+	function getGroupTree(){
+		TranTreePerson(groupTreeArr,employeeArr);
+		
+		$("#tt").tree({
+			data:groupTreeArr,
+			formatter:function(node){
+				return node.pname || node.groupname;
+			},
+			checkbox:true
+		});
+
+		getEmploy();
+	}
+
+
+</script>
+</html>

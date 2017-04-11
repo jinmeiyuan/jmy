@@ -1,0 +1,29 @@
+#my-carmap-div{
+	width: 900px;
+	height: 600px;
+}
+
+#my-carmap-content{
+	width: 100%;
+	height: calc(100% - 50px);
+	padding-top: 4px;
+}
+
+#map{
+	display: inline-block;
+	width: 660px;
+	height: 100%;
+	border:1px solid #b9b9b9;
+	margin-left: 6px;
+}
+#my-carmap-table-div{
+	display: inline-block;
+	width: calc(100% - 680px);
+	height: 100%;
+	overflow-y: auto;
+}
+
+#my-carmap-table{
+	width: 100%;
+	height: 100%;
+}

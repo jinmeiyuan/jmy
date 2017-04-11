@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>数据类型管理</title>
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/poiManager.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/poiKindManager.css">
+	<script type="text/javascript" src="../xml/icon.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+</head>
+<body>
+<div id="button-div">
+	<div id="getPoiKind"><img src="../css/image/icon/refresh.png"/><a>刷新</a></div>
+	<div id="addPoiKind"><img src="../css/image/icon/add.png"/><a>添加</a></div>
+	<div id="editPoiKind"><img src="../css/image/icon/edit.png"/><a>修改</a></div>
+	<div id="delPoiKind"><img src="../css/image/icon/delete.png"/><a>删除</a></div>
+</div>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th>名称</th>
+			<th>图标</th>
+		</tr>
+	</table>
+</div>
+<div id="layer-div">
+	<div id="layer-top-div"><p>添加兴趣点类型</p></div>
+	<div id="layer-content-div">
+		<div>
+			<p id="layer-name-p">名称</p>
+			<input type="text" id="layer-name-input">
+		</div>
+		<div>
+			<p id="layer-sort-p">排序</p>
+			<input type="text" id="layer-sort-input">
+		</div>
+		<div>
+			<p>图标</p>		
+			<select id="iconSelect">
+			</select>
+		</div>
+		<div id="layer-button-div">
+			<input type="button" value="确定" class="button" id="submit-button" />
+			<input type="button" value="关闭" class="button" onclick="closeWin()" />
+		</div>
+	</div>
+</div>
+<div id="shade-div" > 		
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+
+	var poiKindArr = [];
+	var iconArr = [];
+	var selecetKind;
+
+	$(function(){
+		$("#getPoiKind").bind('click',function(){
+			getPoiKindFun();
+		});
+
+		$("#addPoiKind").bind('click',function(){
+			addPoiKindFun();
+		});
+
+		$("#editPoiKind").bind('click',function(){
+			editPoiKindFun();
+		});
+
+		$("#submit-button").bind('click',function(){
+			addKindFun();
+		});
+
+		$("#delPoiKind").click(function(){
+			delKindFun();
+		});
+
+		getPoiKindFun();
+		getIconJson();
+	});
+
+	function editPoiKindFun(){
+		if(selecetKind == null){
+			alert("请先选择类型");
+		}
+		else{
+			$("#layer-div").css("display","block");
+			$("#shade-div").css("display","block");
+			$("#layer-name-input").val(selecetKind.PKName);
+			$("#layer-sort-input").val(selecetKind.CSort);
+			$("#iconSelect").val(selecetKind.iconUrl);
+			$("#layer-top-div p").text("修改兴趣点类型");
+		}
+	}
+
+	function getIconJson(){
+		iconArr = getIconArr();
+		for(var i = 0; i < iconArr.length; i++){
+			jQuery('<option value="'+iconArr[i].url+'">'+iconArr[i].name+'</option>').appendTo("#iconSelect");
+		}
+	}
+
+	/**********获取铁路兴趣点类型**********/
+	function getPoiKindFun(){
+		var xmlStr = RWPOIKindGet(sessionId,ver);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					selecetKind = null;
+					var poik = eval('('+jsonObj.msgbody+')');
+					for(var i = 0; i<poik.length ; i++){
+						poiKindArr.push(poik[i].poikind);
+						addToTable(poik[i].poikind);
+					}
+					addEmpty();
+				}
+				else{
+					//alert("获取类型失败："+jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove();
+		poiKindArr = [];
+	}
+
+	function addEmpty(){
+		var trlength = $("#data-table tr").length;
+		for(trlength;trlength<14;trlength++){
+			$("#data-table").append('<tr><td></td><td></td></tr>');
+		}
+	}
+
+	function addToTable(obj){
+		var tabLength = $("#data-table tr").length;
+		$("#data-table").append('<tr id="'+obj.PKID+'" onclick="trSelectFun(\''+obj.PKID+'\')"><td>'+obj.PKName+'</td><td><img src="'+obj.iconUrl+'" /></td></tr>');	
+	}
+
+	function trSelectFun(objId){
+		if(selecetKind != null){
+			$("#"+selecetKind.PKID).removeClass("selecteding");
+		}
+		
+		for (var i = 0;i < poiKindArr.length;i++) {
+			if(poiKindArr[i].PKID == objId){
+				selecetKind = poiKindArr[i];
+				$('#'+objId).addClass("selecteding");
+				break;
+			}
+		}
+	}
+
+	function addPoiKindFun(){
+		$("#layer-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#layer-name-input").val("");
+		$("#layer-sort-input").val("");
+		$("#layer-top-div p").text("添加兴趣点类型");
+	}
+
+	function addKindFun(){
+		if($("#layer-name-input").val() == ""){
+			alert("请输入名称");
+			return;
+		}
+		if($("#layer-sort-input").val() == ""){
+			alert("请填写排序");
+			return;
+		}
+		var item = {
+			id:newGuid(),
+			name : $("#layer-name-input").val(),
+			csort : $("#layer-sort-input").val(),
+			iconurl : $("#iconSelect option:selected").val() || ""
+		}
+
+		if($("#layer-top-div p").text() == "添加兴趣点类型"){
+			var xmlStr = RWPOIKindAdd(sessionId,ver,item);
+			addFun(xmlStr);
+		}
+		else{			
+			editFun();
+		}		
+	}
+
+	function delKindFun(){
+		if(selecetKind == null){
+			alert("请先选择类型");
+		}
+		else{
+			if(confirm("确定删除吗？")){
+				var item = {
+					id:selecetKind.PKID
+				}
+				var xmlStr = RWPOIKindDel(sessionId,ver,item);
+				$.ajax({
+					url:requrl,
+					type:"POST",
+					dataType:"json",
+					data:xmlStr,
+					success:function(data) {
+						var jsonObj = eval(data);
+						if(jsonObj.result == "0"){
+							alert("删除成功");	
+							$("tr[id="+selecetKind.PKID+"]").remove();
+							selecetKind = null;
+							addEmpty();
+						}
+						else{
+							alert(jsonObj.error);
+						}
+					}			
+				});	
+
+			}
+			
+		}
+	}
+
+	function addFun(xmlStr){
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					alert("添加成功");	
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+			
+		});
+	}
+
+	function editFun(){
+		var item = {
+			id:selecetKind.PKID,
+			name : $("#layer-name-input").val(),
+			csort : $("#layer-sort-input").val(),
+			iconurl : $("#iconSelect option:selected").val() || ""
+		}
+		var xmlStr = RWPOIKindEdit(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					alert("修改成功");	
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+			
+		});
+	}
+
+	function closeWin(){
+		$("#layer-div").css("display","none");
+		$("#shade-div").css("display","none");
+	}
+
+</script>
+</body>
+</html>

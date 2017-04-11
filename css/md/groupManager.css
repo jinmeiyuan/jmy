@@ -1,0 +1,424 @@
+html{
+	height: 100%;
+}
+body{
+	width: 100%;
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	overflow-y: hidden;
+	background: #f0f0f0;
+}
+#top-div{
+	display: block;
+	height: 50px;
+	width: 100%;
+	line-height: 50px;
+	background: #f2f3f8;
+	border-top: 1px solid #d9d9d9;
+	border-bottom: 1px solid #d9d9d9;
+	vertical-align: middle;
+}
+
+#top-div button{
+	display: inline;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+#content-div table{
+	width: 600px;
+}
+
+#mainDiv{
+	width: 320px;
+	height: 100%;
+	border-right: 1px solid #d9d9d9;
+	background: #FFF;
+	display: inline-block;
+}
+
+#mainDiv #title-div{
+	width: 100%;
+	vertical-align: middle;
+	padding:12px 10px;
+}
+
+#title-div p{
+	display: inline-block;
+	font-size: 16px;
+}
+
+#mainDiv ul{
+	margin-left: 10px;
+	vertical-align: middle;
+}
+
+#getGroupBtn{
+	display: inline-block;
+	width: 60px;
+	height: 24px;
+	border-radius: 4px;
+	background: #FFF;	
+	text-align: center;
+	cursor: pointer;
+	border: 1px solid #c4c4c4;
+	margin-left: 160px;
+}
+
+#getGroupBtn img{
+	width: 18px;
+	height: 18px;
+	padding: 4px;
+	vertical-align: middle;
+
+}
+
+#top-div div{
+	display: inline-block;
+	width: 72px;
+	height: 36px;
+	line-height: 36px;
+	border-radius: 4px;
+	background: #FFF;	
+	text-align: center;
+	cursor: pointer;
+	vertical-align: middle;
+	margin:0 14px; 
+	background: #f2f3f8;
+}
+
+#top-div .button-div{
+	background: #f2f3f8;
+	border: 1px solid #f2f3f8;
+}
+
+#top-div .button-select-div{
+	background: #fff;
+	border: 1px solid #c4c4c4;
+}
+
+#top-div div img{
+	width: 20px;
+	height: 20px;
+	padding: 4px;
+	vertical-align: middle;
+}
+
+#hidden-div{
+	position: absolute;
+	display: none;
+	z-index: 50;	
+	margin: 0 auto;
+	left: 380px;
+	top: 170px;	
+	height: 120px;
+	text-align: center;
+	background: #FFF;
+}
+
+#hidden-div p{
+	display: inline;
+	font-size: 14px;
+}
+
+#window-content{
+	margin: 20px 10px;
+}
+
+#hidden-div input{
+	height: 24px;
+	width: 200px;
+}
+
+#window-top{
+	width: 100%;
+	height: 30px;
+	background: #2278d6;
+	text-align: left;
+}
+
+#window-top p{
+	display: inline;
+	color: #FFF;
+	line-height: 30px;
+	margin-left: 6px;
+	text-align: left;
+}
+
+#window-top img{
+	float: right;
+	display: block;
+	position: absolute;
+	right: -10px;
+	top: -10px;
+}
+
+#button-div{
+	margin: 6px;
+	height: 30px;
+}
+
+#button-div button{
+	height: 24px;
+	width: 80px;
+	display: inline;
+	line-height: 24px;
+	cursor: pointer;
+}
+
+#person-div{
+	width: calc(100% - 326px);
+	height: calc(100% - 180px);
+	margin-left: 6px;
+	background: #FFF;
+	height: 100%;
+	display: inline-block;
+	border-left:1px solid #d9d9d9;
+	position: absolute;
+	overflow-y: hidden;
+}
+
+#title-div2{
+	height: 50px;
+	border-bottom: 1px solid #c4c4c4;
+	margin: 0 20px;
+}
+
+#title-div2 p{
+	line-height: 50px;
+	font-size: 16px;
+	width: 240px;
+	display: inline-block;
+}
+
+/**********************表格**********************/
+#table-div{
+	margin: 0 20px;
+	overflow-y: auto;
+	height: calc(100% - 90px);
+}
+.one-table{
+	border: 0px solid #c4c4c4;
+	border-collapse: collapse;
+	height: 100%;
+	color: #333;
+	font-weight: normal;
+	width: 100%;
+}
+
+.one-table th{
+	border-bottom: 1px solid #c4c4c4;
+	height: 40px;
+	background: #ffffff;
+	color: #333;
+	font-weight: normal;
+	text-align: center;
+}
+
+.one-table tr td{
+	height: 40px;
+	text-align: center;
+}
+
+.one-table tr:nth-child(odd){
+	background: #e4ecf3;
+}
+
+.one-table tr:nth-child(even){
+	background: #FFFFFF;
+}
+
+
+/*********************树******************/
+#tt-div{
+	padding-top: 20px;
+	padding-bottom: 20px;
+	width: 100%;
+	height: 76%;
+	overflow-y: auto;
+}
+
+#tt-div #tt{
+	height: 100%;
+}
+
+.tree-folder{
+	background: url('../image/icon/group.png') no-repeat;
+	width: 18px;
+	height: 18px;
+	background-size: 100%;
+}
+
+.tree-file {
+	background: url('../image/icon/persons.png') no-repeat;
+	width: 18px;
+	height: 18px;
+	background-size: 100%;
+}
+
+/************右边人员样式***********/
+#person-button-div{
+	display: inline-block;
+	width: calc(100% - 250px);
+	text-align: right;
+}
+#person-button-div>div{
+	display: inline-block;
+	width: 60px;
+	height: 24px;
+	border-radius:4px;
+	background: #FFF;
+	text-align: center;
+	cursor: pointer;
+	border: 1px solid #c4c4c4;
+	margin-right: 20px; 
+}
+
+#importBtn a{
+	line-height: 24px;
+}
+
+#person-button-div div img{
+	width: 18px;
+	height: 18px;
+	vertical-align: middle;
+	padding: 4px;
+}
+
+#person-hidden-div{
+	width: 280px;
+	height: 210px;
+	z-index: 100;
+	position: fixed;
+	top: 160px;
+	left: 460px;
+	display: none;
+	background: #FFF;
+}
+
+#person-window-top-p{
+	height: 40px;
+	line-height: 40px;
+	font-size: 16px;
+	margin: auto 10px;
+	border-bottom: 1px solid #c4c4c4;
+}
+
+#person-window-close{
+	position: absolute;
+	top: -14px;
+	left: 268px;
+}
+
+#person-window-content p{
+	height: 30px;
+	width: 60px;
+	display: inline-block;
+	line-height: 30px;
+	margin: 4px 10px;
+}
+
+#person-window-content input{
+	width: 180px;
+	height: 24px;
+}
+
+#person-window-content select{
+	width: 180px;
+	height: 24px;
+}
+
+#person-window-button{
+	width: 100%;
+	height: 30px;
+	vertical-align: middle;
+	text-align: center;
+}
+
+.button-style{
+	width: 60px;
+	height: 30px;
+	border: 1px solid #d9d9d9;
+	display: inline-block;
+	cursor: pointer;
+	border-radius: 4px;
+	margin: 10px;
+}
+
+.button-style img{
+	vertical-align: middle;
+	margin: 6px 2px;
+}
+
+#one-table .selecteding{
+	border:1px solid #2b7fdd;
+}
+
+/****************************************导入样式****************************************/
+#button-div{
+	display: none;
+	position: fixed;
+	z-index: 100;
+	width : 800px;
+	height: 560px;
+	top: 40px;
+	left: 150px;
+	border: 1px solid #c4c4c4;
+	background: #FFF;
+	overflow-y: auto;
+	overflow-x: hidden;
+
+}
+
+
+#button-div2 button{
+	display: inline-block;
+	cursor: pointer;
+}
+
+.closeBtn1{
+	position: absolute;
+	right: -10px;
+	top: -10px;
+	cursor: pointer;
+}
+
+#button-div #file-div{
+	width: 84px;
+	height: 26px;
+	background: #6ADDA1;
+	color: #fff;
+	display: inline-block;
+	position: relative;
+	line-height: 26px;
+	text-align: center;
+	margin-left: 20px;
+	margin-top: 4px;
+}
+
+#file-div input{	
+	position: absolute;
+	cursor: pointer;
+	right: 0;
+	top: 0;
+	opacity: 0;
+	width: 84px;
+}
+
+#button-input{
+	margin-left: 10px;
+	width: 72px;
+	height: 26px;
+	border:1px solid #c4c4c4;
+	color: #666;
+	text-align: center;
+	margin-top: 1px;
+}
+
+#two-table{
+	margin: auto;
+	width: 760px;
+	height: 420px;
+	overflow-y: auto;
+}

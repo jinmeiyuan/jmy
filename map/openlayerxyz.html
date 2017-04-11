@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>XYZ</title>
+   	<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+    <link rel="stylesheet" href="ol.css" type="text/css">
+    <!-- The line below is only needed for old environments like Internet Explorer and Android 4.x -->
+    <script src="polyfill.min.js?features=requestAnimationFrame,Element.prototype.classList,URL"></script>
+    <script src="ol.js"></script>
+  </head>
+  <body>
+    <div id="map" class="map" style="width:100%;height:100%" ></div>
+    <script>
+	var TileLayer = function (options) {
+		var layer = new ol.layer.Tile({
+			extent: ol.proj.transformExtent(options.mapExtent, options.fromProject, options.toProject),
+			source: new ol.source.XYZ({
+				attributions: [options.attribution],
+				url: options.url,
+				tilePixelRatio: options.tilePixelRatio, // THIS IS IMPORTANT
+				minZoom: options.mapMinZoom,
+				maxZoom: options.mapMaxZoom
+			})
+		});
+		return layer;
+	};
+	//定义Google切片参数    
+	var defaults = {
+			url: 'http://222.44.123.251/maps/{z}/{x}/{y}.png',
+			mapExtent: [-2.0037508342787E7, -2.0037508342787E7, 2.0037508342787E7, 2.0037508342787E7],
+			mapMinZoom: 1,
+			mapMaxZoom: 14,
+			attribution: new ol.Attribution({
+				html: 'Tiles © GoogleMap'
+			}),
+			tilePixelRatio: 1,
+			fromProject: "EPSG:102100",
+			toProject: "EPSG:3857"
+		};
+	var layer = new TileLayer(defaults);
+	 var view = new ol.View({
+        center: ol.proj.fromLonLat([121.054378,32.469629]),
+        zoom: 16,
+        minZoom: 1,
+        maxZoom: 16
+    });
+	var sate = new ol.layer.Group({
+        layers: [layer]
+    });
+      var map = new ol.Map({
+        target: 'map',
+        layers: [ 
+			sate
+        ],
+        view:view
+      });
+
+      /*************画线****************/
+function createLine(){
+    var points = [[120.183601,30.315366],[120.184150,30.316083],[120.184532,30.316133]];
+    var line = new ol.geom.LineString(points);
+
+   // line.transform("EPSG:4326", "EPSG:3857");
+    var feature = new ol.Feature({
+        geometry : line.transform("EPSG:4326", "EPSG:3857")
+    });
+
+	//console.log(points);
+   // console.log(line.transform("EPSG:4326", "EPSG:3857"));
+   
+    feature.setStyle(new ol.style.Style({
+        stroke : new ol.style.Stroke({
+            color : [255,0,0,1],
+            width : 4
+        }),
+        fill:new ol.style.Fill({
+            color:"#0044CC"
+        })
+    }));
+
+    var vsource = new ol.source.Vector({
+        features : [feature]
+    });
+
+    var alayer = new ol.layer.Vector({
+        source : vsource
+    });
+
+    //alayer.getSource().addFeature(feature);
+
+        view.setCenter(ol.proj.fromLonLat([120.183601,30.315366]));
+
+    map.addLayer(alayer);
+}
+    </script>
+  </body>
+  <button onclick="createLine()" style="width:30px;height:30px;"></button>
+</html>

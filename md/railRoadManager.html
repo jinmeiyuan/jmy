@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>线路信息管理</title>
+	<script type="text/javascript" src="../js/jquery-1.8.3.min.js"></script>
+	<script src="../js/jquery-3.1.1.js"></script>
+	
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/railRoadManager.css" />
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/bootstrap-table.min.js"></script>
+	<script type="text/javascript" src="../js/bootstrap-table-master/dist/locale/bootstrap-table-zh-CN.min.js"></script>
+	<link rel="stylesheet" href="../js/bootstrap-3.3.7-dist/css/bootstrap.min.css" />
+	<link rel="stylesheet" type="text/css" href="../js/bootstrap-table-master/dist/bootstrap-table.min.css" /> 
+	<script src="../js/bootstrap-3.3.7-dist/js/bootstrap.min.js"></script>
+	 <script type="text/javascript" src="../myJs/windowJs.js"></script>
+	 <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+	 <script type="text/javascript" src="../map/map.js"></script>
+
+</head>
+<body>
+<div id="button-div">
+	<input type="button" value="刷新线路信息" id="getRoadBtn">
+	<input type="button" value="导入线路信息" id="importRoadBtn" style="display:none;" /><!-- data-target="#myModal" data-toggle="modal"> -->
+	<input type="button" value="添加线路信息" id="addRoadBtn">
+	<input type="button" value="修改线路信息" id="editRoadBtn">
+	<input type="button" value="删除线路信息" id="delRoadBtn">
+	<input type="button" value="获取线路点" id="getPoints" style="margin-left:100px;">
+	<input type="button" value="导入线路点" id="importPointsBtn">
+</div>
+<div class="modal fade" id="loadingModal">
+	<div style="width: 200px;height:20px; z-index: 20000; position: absolute; text-align: center; left: 50%; top: 50%;margin-left:-100px;margin-top:-10px">
+		<div class="progress progress-striped active" style="margin-bottom: 0;">
+			<div class="progress-bar" style="width: 100%;"></div>
+		</div>
+		<h5>正在加载...</h5>
+	</div>
+</div>
+<div id="rail-div">
+	<table id="rail-table">
+
+	</table>
+</div>
+<div id="import-div">
+	<div id="import-div-title">
+		<p>导入线路信息</p>
+	</div>
+	<div id="file-div" class="file-div">
+		<input type="file" id="files" value="选择文件" onchange="readExcel()" />读取文件
+	</div>	
+	<input id="button-input" type="button" value="导入表格"  onclick="sendExcel()" />
+	<input type="button" class="closeBtn1" value="关闭" />
+	<table id="two-table" >
+		<tr>
+			<th width="50px">序号</th>
+			<th>编号</th>
+			<th>名称</th>
+			<th>方向</th>
+			<th>类型</th>
+			<th>备注</th>
+			<th>导入时文件名</th>
+		</tr>
+	</table>
+</div>
+<!--修改删除线路信息-->
+<div id="edit-div">
+	<div id="edit-div-title">
+		<p>修改线路信息</p>
+	</div>
+	<div id="edit-content">
+		<p>编号</p>
+		<input type="text" id="edit-no-input"/>
+		<p>名称</p>
+		<input type="text" id="edit-name-input" />
+		<p>方向</p>
+		<input type="text" id="edit-dir-input" />
+		<p>类型</p>
+		<input type="text" id="edit-kind-input" />
+		<p>导入时文件名</p>
+		<input type="text" id="edit-file-input" />
+		<p>备注</p>
+		<input type="text" id="edit-rmk-input" />
+	</div>
+	<div id="edit-button">
+		<input type="button" class="closeBtn1" value="关闭" />
+		<input type="button" value="确认" id="edit-submit-btn" />
+	</div>
+	
+</div>
+<!--获取线路点的框-->
+<div id="getpoints-div">
+	<div id="getpoints-div-title">
+		<p>查看线路点信息</p>
+	</div>
+	<div id="getPoints-btn-div">
+		<input type="button" value="删除线路点" id="delPoints-btn" />
+		<input type="button" value="关闭窗口" class="closeBtn1">
+	</div>
+	<div class="pop-table-div">
+		<table id="getPoints-table">			
+		</table>
+	</div>
+</div>
+<!--导入兴趣点信息-->
+<div id="import-point-div">
+	<div id="import-div-title">
+		<p>导入线路点信息</p>
+	</div>
+	<div class ="file-div">
+		<input type="file" id="files2" value="选择文件" onchange="readExcel2()" />读取文件
+	</div>	
+	<input type="button" value="导入表格"  onclick="sendExcel2()" />
+	<input type="button" class="closeBtn1" value="关闭" />
+	<div class="pop-table-div">
+		<table id="import-point-table" >		
+		</table>
+	</div>
+	
+</div>
+<div id="shade-div" > 		
+</div>
+<!-- <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">
+					&times;
+				</button>
+				<h4 class="modal-title" id="myModalLabel">
+					导入线路信息
+				</h4>
+			</div>
+			<div class="modal-body">
+				<table id="modal-table">
+					
+				</table>
+				
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-default" data-dismiss="modal">关闭
+				</button>
+				<button type="button" class="btn btn-primary">
+					确定
+				</button>
+			</div>
+		</div>
+	</div>
+</div> -->
+
+<script type="text/javascript">
+	var requrl = localStorage.getItem("requrl");
+	var importurl = localStorage.getItem("importurl");
+	var sessionid = localStorage.getItem("sessionid");
+	var ver = localStorage.getItem("ver");
+	var sendArr = [];
+	var pointSendArr = [];
+	var selObj ;
+	$(function(){
+		$("#rail-table").bootstrapTable({
+			striped : true,
+			columns:[{
+				checkbox:true
+				},{
+					title : "序号",
+					formatter : function(value,row,index){
+						return index+1;
+					},
+					width:50
+				},{
+					title : "编号",
+					field : "id"
+				},{
+					title : "名称",
+					field : "name"
+				},{
+					title : "方向",
+					field : "dir"
+				},{
+					title : "类型",
+					field : "kind"
+				},{
+					title : "导入时文件名",
+					field : "file",
+				},{
+					title : "备注",
+					field : "rmk"
+				},{
+					title : "入网时间",
+					field : "date"
+				}],
+				onClickRow:function(row){
+					selObj = row;
+				}
+			});
+
+		$("#getPoints-table").bootstrapTable({
+			striped : true,
+			columns:[{
+					checkbox : true,
+				},{
+					title : "点名称",
+					field : "name"
+				},{
+					title : "经度",
+					field : "x"
+				},{
+					title : "纬度",
+					field : "y"
+				},{
+					title : "公里标",
+					field : "glb"
+				}],
+				onClickRow:function(row){
+					selObj = row;
+				}
+			});
+
+		$("#import-point-table").bootstrapTable({
+			striped : true,
+			columns:[{
+					title : "序号",
+					field : "pIndex"
+				},{
+					title : "信息点代码",
+					field : "pNo"
+				},{
+					title : "信息点名称",
+					field : "pName"
+				},{
+					title : "信息点属性",
+					field : "pAttr"
+				},{
+					title : "工作模式",
+					field : "pWorkModel"
+				},{
+					title : "经度",
+					field : "px"
+				},{
+					title : "纬度",
+					field : "py"
+				},{
+					title : "公里标",
+					field : "pGlb"
+				},{
+					title : "所属路局名称",
+					field : "pLJName"
+				},{
+					title : "所属路局代码",
+					field : "pLJNo"
+				},{
+					title : "所属线路名称",
+					field : "pLineName"
+				},{
+					title : "所属线路代码",
+					field : "pLineNo"
+				},{
+					title : "所属区段名称",
+					field : "pQDName"
+				},{
+					title : "所属调度区段名称",
+					field : "pDDQDName"
+				},{
+					title : "车站名称",
+					field : "pStationName"
+				},{
+					title : "车站代码",
+					field : "pStationNo"
+				},{
+					title : "车站电话",
+					field : "pStationTel"
+				},{
+					title : "曲径",
+					field : "pQJ"
+				},{
+					title : "海拔",
+					field : "pHeight"
+				},{
+					title : "归属GRIS的IP地址",
+					field : "pGRIS"
+				}]
+			});
+		getRailRoad();
+
+		$("#importRoadBtn").click(function(){
+			$("#import-div").css("display","block");
+			$("#shade-div").css("display","block");
+			clearTable();
+			addEmpty2();
+		});
+
+		$(".closeBtn1").click(function(){
+			closeWin();			
+		});
+
+		$("#getRoadBtn").click(function(){
+			getRailRoad();
+		});
+
+		$("#delRoadBtn").click(function(){
+			delRoadFun();
+		});
+
+		$("#addRoadBtn").click(function(){
+			editRoadFun("add");
+		});
+
+		$("#editRoadBtn").click(function(){
+			editRoadFun("edit");
+		});
+
+		$("#getPoints").click(function(){
+			if(selObj != null){
+				$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+				getPointsFun();
+			}
+			
+		});
+
+		$("#importPointsBtn").click(function(){
+			importPointsFun();
+		});
+
+		$("#edit-submit-btn").click(function(){
+			editSumitFun();
+		});
+
+		$("#delPoints-btn").click(function(){
+			delPointsFun();
+		});
+
+	});
+
+	function importPointsFun(){
+		$("#import-point-div").css("display","block");
+		$("#shade-div").css("display","block");
+	}
+
+	function getPointsFun(){
+		$("#getpoints-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#getpoints-div-title p").text(selObj.name+"的线路点信息");
+		
+		var xmlStr = RWRailRoadPointQuery(sessionid,ver,selObj);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			data : xmlStr,
+			processData : false,
+			contentType : false,
+			success : function(data){
+				$("#loadingModal").modal("hide");
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					var msg = eval('('+jsonObj.msgbody+')');
+					$("#getPoints-table").bootstrapTable("load",msg.point);
+					
+				}
+			}
+		
+		});
+	}
+
+	function editRoadFun(str){
+		if(selObj != null && str === "edit"){
+			$("#edit-div").css("display","block");
+			$("#shade-div").css("display","block");
+			$("#edit-no-input").val(selObj.id);
+			$("#edit-name-input").val(selObj.name);
+			$("#edit-dir-input").val(selObj.dir);
+			$("#edit-kind-input").val(selObj.kind);
+			$("#edit-rmk-input").val(selObj.rmk);
+			$("#edit-file-input").val(selObj.file);
+			$("#edit-no-input").attr("disabled",true);
+			$("#edit-div-title p").text("修改【"+selObj.name+"】的线路信息");
+		}
+		else if(str === "add"){
+			$("#edit-div").css("display","block");
+			$("#shade-div").css("display","block");		
+			$("#edit-no-input").val("");
+			$("#edit-name-input").val("");
+			$("#edit-dir-input").val("");
+			$("#edit-kind-input").val("");
+			$("#edit-rmk-input").val("");	
+			$("#edit-file-input").val("");
+			$("#edit-no-input").attr("disabled",false);
+			$("#edit-div-title p").text("添加线路信息");
+		}
+	}
+
+	function editSumitFun(){
+		if($("#edit-no-input").val() === ""){
+			alert("请填写编号");
+		}
+		if($("#edit-name-input").val() === ""){
+			alert("请填写名称");
+		}
+		$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+		var item = {
+			id : $("#edit-no-input").val(),
+			name : $("#edit-name-input").val(),
+			dir : $("#edit-dir-input").val(),
+			kind : $("#edit-kind-input").val(),
+			file : "",
+			rmk : $("#edit-rmk-input").val()
+		}
+		var xmlStr = "";
+		if($("#edit-div-title p").text() ==="添加线路信息"){
+			xmlStr = RWRailRoadAdd(sessionid,ver,JSON.stringify(item));
+		}
+		else{
+			item.id = selObj.id;
+			item.file = selObj.file;
+			xmlStr = RWRailRoadEdit(sessionid,ver,JSON.stringify(item));
+		}
+		
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			data:xmlStr,
+			success:function(data){
+				$("#loadingModal").modal("hide");
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					if($("#edit-div-title p").text() ==="添加线路信息"){
+						alert("添加成功");
+					}
+					else{
+						alert("修改成功");
+					}
+					getRailRoad();
+					closeWin();
+					
+					//$("#rail-table").bootstrapTable('updateRow',{index:selObj.index,});
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				
+			}
+		});
+
+	}
+
+	function delRoadFun(){
+		var selArr = $("#rail-table").bootstrapTable('getSelections');
+		if(selArr.length == 0){
+			return;
+		}
+
+		if(confirm("确定删除选中的数据？")){	
+			$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+			delMFun(0,selArr);
+		}
+	}
+
+	function delMFun(num,arr){
+		var xmlStr = RWRailRoadDel(sessionid,ver,arr[num]);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			data : xmlStr,
+			success : function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result === "0"){
+					var ids = $.map($("#rail-table").bootstrapTable('getSelections'),function(row){
+						return row.id;
+					});
+					$("rail-table").bootstrapTable("remove",{field:"id",values:ids});
+				}
+				if(num != arr.length-1){
+					delMFun(num+1,arr);
+				}
+				else{
+					$("#loadingModal").modal("hide");
+					getRailRoad();
+					alert("删除成功");
+				}
+			}
+		});
+	}
+
+	/********删除线路点信息*********/
+	function delPointsFun(){
+		var delPointsArr = $("#getPoints-table").bootstrapTable('getSelections');
+		if(delPointsArr.length != 0){
+			$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+			delPointNum(0,delPointsArr);
+		}
+	}
+
+	function delPointNum(num,arr){
+		var xmlStr2 = RWRailRoadPointDel(sessionid,ver,selObj.id,arr[num].id);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr2,
+			success:function(data){
+				if(num !== arr.length-1){
+					delPointNum(num+1,arr);
+				}
+				else{
+					$("#loadingModal").modal("hide");
+					getPointsFun();
+					alert("删除成功");
+				}
+			}
+			
+		});
+	}
+
+	function closeWin(){
+		$("#import-div").css("display","none");
+		$("#shade-div").css("display","none");
+		$("#edit-div").css("display","none");
+		$("#getpoints-div").css("display","none");
+		$("#import-point-div").css("display","none");
+	};
+
+	function getRailRoad(){
+		var xmlStr = RWRailRoadQuery(sessionid,ver);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			data : xmlStr,
+			processData : false,
+			contentType : false,
+			success : function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					var msg = eval('('+jsonObj.msgbody+')');
+
+					
+					$("#rail-table").bootstrapTable("load",msg.road);
+				}
+			}
+		
+		});
+	}
+
+	function clearTable(){
+		$("#two-table tr:not(:first)").remove("");
+		
+	}
+
+	/**读取excel文件**/
+	function readExcel(){
+		var formdata = new FormData();
+		if($('input[type = file]')[0].files.length == 0){
+			alert("请选择一个文件上传");
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[0].files[0]);
+		$.ajax({
+			url : importurl,
+			type : "POST",
+			data : formdata,
+			processData : false,
+			contentType : false,
+			success : function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					sendArr = [];
+					clearTable();
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.length; i++) {
+						if((msg[i].编号 || msg[i].序号 || "") != ""){
+							var item = {
+								id : msg[i].编号 || msg[i].序号,
+								name : msg[i].名称,
+								dir : msg[i].方向,
+								kind : msg[i].类型,
+								rmk : msg[i].备注,
+								file : msg[i].导入时文件名
+							}
+							sendArr.push(item);
+						}
+						
+					}
+					addToTable();
+				}
+			}
+		})
+	};
+
+	/**读取兴趣点文件**/
+	function readExcel2(){
+		var formdata = new FormData();
+		if($('input[type = file]')[1].files.length == 0){
+			alert("请选择一个文件上传");
+			return;
+		}
+		formdata.append('file',$('input[type=file]')[1].files[0]);
+		$.ajax({
+			url : importurl,
+			type : "POST",
+			data : formdata,
+			processData : false,
+			contentType : false,
+			success : function(data){
+				var jsonObj = eval('('+data+')');
+				if(jsonObj.result == "0"){
+					pointSendArr =  [];
+					var msg = eval('('+jsonObj.msgbody+')');
+					for (var i = 0; i < msg.length; i++) {
+						if((msg[i].编号 || msg[i].序号 || "") != ""){
+							var item = {
+								id : selObj.id+msg[i].信息点代码,
+								pIndex : msg[i].序号,
+								pNo : msg[i].信息点代码,
+								pName : msg[i].信息点名称,
+								pAttr : msg[i].信息点属性,
+								pWorkModel : msg[i].工作模式,
+								px : msg[i].经度,
+								py : msg[i].纬度,
+								pGlb : msg[i].公里标,
+								pLJName : msg[i].所属路局名称,
+								pLJNo : msg[i].所属路局代码,
+								pLineName : msg[i].所属线路名称,
+								pLineNo : msg[i].所属线路代码,
+								pQDName : msg[i].所属区段名称,
+								pDDQDName : msg[i].所属调度区段名称,
+								pStationName : msg[i].车站名称,
+								pStationNo : msg[i].车站代码,
+								pStationTel : msg[i].车站电话 || msg[i].车站电话号码,
+								pQJ : msg[i].曲径,
+								pHeight : msg[i].海拔,
+								pGRIS : msg[i].归属GRIS的IP地址,
+								roadId:selObj.id || ""
+							}
+							pointSendArr.push(item);
+						}
+					}					
+					$("#import-point-table").bootstrapTable("load",pointSendArr);
+				}
+				else{
+					alert("读取失败");
+				}
+			}
+		})
+	};
+
+	function sendExcel(){
+		if(sendArr.length == 0){		
+			return;
+		}
+		$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+		importPersonFun(0);
+	}
+
+	function sendExcel2(){
+		if(pointSendArr.length == 0){		
+			return;
+		}
+		$("#loadingModal").modal("show",{backdrop:'static',keyboard:false});
+		importPoint();
+	}
+
+	function importPoint(){
+		if(confirm("是否删除此线路上原有的点")){		
+			var xmlStr2 = RWRailRoadPointDel(sessionid,ver,selObj.id,"");
+			$.ajax({
+				url : requrl,
+				type : "POST",
+				dataType : "json",
+				data : xmlStr2,
+				success : function(data){
+					var jsonObj = eval(data);
+					if(jsonObj.result == "0"){
+						importP();
+					}
+				}
+			});
+		}
+		else{
+			importP();
+		}
+	}
+
+	function importP(){
+		var a ={
+			roadid : selObj.id,
+		}
+		var points = "";
+		for (var i = 0; i < pointSendArr.length; i++) {
+			var item = pointSendArr[i];
+			points += item.pIndex+"|"+item.pNo+"|"+item.pName+"|"+item.pAttr+"|"+item.pWorkModel+"|"+item.px+"|"+item.py+"|"+item.pGlb+"|"+item.pLJName+"|"+item.pLJNo+"|"+item.pLineName+"|"+item.pLineNo+"|"+
+			item.pQDName+"|"+item.pDDQDName+"|"+item.pStationName+"|"+item.pStationNo+"|"+item.pStationTel+"|"+item.pQJ+"|"+item.pHeight+"|"+item.pGRIS;
+			if(i != pointSendArr.length-1){
+				points += " & ";
+			}
+		}
+		a.point = points;
+		var xmlStr = RWRailRoadPointAdd(sessionid,ver,a);
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success:function(data){
+				$("#loadingModal").modal("hide");
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					alert("线路点添加成功");
+					closeWin();
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	
+
+	function importPersonFun(){
+		var item = {
+			roads:sendArr
+		}
+		var xmlStr = RWRailRoadInsert(sessionid,ver,JSON.stringify(item));
+		$.ajax({
+			url : requrl,
+			type : "POST",
+			dataType : "json",
+			data : xmlStr,
+			success : function(data){
+				$("#loadingModal").modal("hide");
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					alert("导入成功");
+					getRailRoad();
+					closeWin();
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				
+			}
+		});
+	}
+	
+	function addToTable(){
+		for(var i = 0;i<sendArr.length;i++){
+			$("#two-table").append('<tr><td>'+(i+1)+'</td><td>'+sendArr[i].id+'</td><td>'+sendArr[i].name+'</td><td>'+sendArr[i].dir+'</td><td>'+sendArr[i].kind+'</td><td>'+sendArr[i].rmk+'</td><td>'+sendArr[i].file+'</td>');
+		}	
+		addEmpty2();		
+	}
+
+	function addEmpty2(){
+		var trlength = $("#two-table tr").length;
+		for(trlength;trlength<13;trlength++){
+			$("#two-table").append('<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>');
+		}
+	}
+
+</script>
+</body>
+</html>

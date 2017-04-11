@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>兴趣点管理</title>
+	<link rel="stylesheet" type="text/css" href="../css/md/allCss.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/import.css" />
+	<link rel="stylesheet" type="text/css" href="../css/md/poiManager.css">
+	<link rel="stylesheet" type="text/css" href="../css/md/role.css">
+	<script type="text/javascript" src="../js/easyui/jquery.min.js"></script>
+	<script type="text/javascript" src="../js/easyui/jquery.easyui.min.js"></script>
+    <script type="text/javascript" src="../js/easyui/easyui-lang-zh_CN.js"></script>
+    <script type="text/javascript" src="../js/easyui/jquery-extend.js"></script>
+    <script type="text/javascript" src="../js/urlJs/msgJs.js"></script>
+    <script type="text/javascript" src="../js/layer/layer.js"></script>
+    <script type="text/javascript" src="../myJs/windowJs.js"></script>
+    <script type="text/javascript" src="../xml/icon.js"></script>
+
+</head>
+<body>
+<div id="button-div">
+	<div id="getBtn"><img src="../css/image/icon/refresh.png"/><a>刷新</a></div>
+	<div id="addBtn"><img src="../css/image/icon/add.png"/><a>添加</a></div>
+	<div id="editBtn"><img src="../css/image/icon/edit.png"/><a>修改</a></div>
+	<div id="delBtn"><img src="../css/image/icon/delete.png"/><a>删除</a></div>
+</div>
+<div id="table-div">
+	<table id="data-table">
+		<tr>
+			<th>序号</th>
+			<th>名称</th>
+			<th>备注</th>
+		</tr>
+	</table>
+</div>
+<div id="paging-div">
+</div>
+<div id="edit-div">
+	<div id="edit-top-div">
+		<p>添加角色</p>
+	</div>
+	<div id="edit-content-div">
+		<div>
+			<p>名称</p>
+			<input type="text" id="edit-name-input" />
+		</div>
+		<div>
+			<p>备注</p>		
+			<input type="text" id="edit-rmk-input" />
+		</div>
+		<div id="edit-button-div">
+			<input type="button" value="确定" class="button" id="submit-button" />
+			<input type="button" value="关闭" class="button" onclick="closeWin()" />
+		</div>
+	</div>
+</div>
+<div id="shade-div" > 		
+</div>
+<script type="text/javascript">
+	var sessionId = localStorage.getItem("sessionid");
+	var requrl = localStorage.getItem("requrl");
+	var pid = localStorage.getItem("pid");
+	var ver = localStorage.getItem("ver");
+	var roleArr = [];
+	var selectRole;
+	$(function(){
+		getFun();
+		
+		$("#getBtn").bind('click',function(){
+			getFun();
+		});
+
+		$("#addBtn").bind('click',function(){			
+			addFun();
+		});
+
+		$("#submit-button").bind('click',function(){
+			submitAddFun();
+		});
+
+		$("#editBtn").bind('click',function(){
+			if(selectRole != null){
+				editFun();
+			}
+			else{
+				alert("请选择需要修改的行");
+			}
+		});
+
+		$("#delBtn").bind('click',function(){
+			if(selectRole != null){
+				if(confirm("确定删除?")){	
+					delFun();
+				}
+			}
+			else{
+				alert("请选择需要删除的行");
+			}
+		});
+	});
+
+	/**********获取角色**********/
+	function getFun(){
+		var xmlStr = RWRoleGet(sessionId,ver);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					clearTable();
+					roleArr=[];
+					var role = eval('('+jsonObj.msgbody+')');
+					for(var i = 0; i<role.length ; i++){
+						roleArr.push(role[i].role);
+						addToArr(role[i].role);
+					}					
+				}
+			}
+		});
+	}
+
+	/**删除兴趣点**/
+	function delFun(){
+		item = {
+			id:selectRole.roleid
+		}
+		var xmlStr = RWRoleDel(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					selectRole = null;
+					$("#"+item.id).remove();
+					alert("删除成功");					
+				}
+				else{
+					alert(jsonObj.error);
+				}
+			}
+		});
+	}
+
+	function clearTable(){
+		$("#data-table tr:not(:first)").remove();
+	}
+
+	function addToArr(obj){
+		var tabLength = $("#data-table tr").length;
+		if(tabLength < 14){
+			$("#data-table").append('<tr id="'+obj.roleid+'" onclick="trSelectFun(\''+obj.roleid+'\')"><td>'+tabLength+'</td><td>'+obj.rolename+'</td><td>'+obj.remark+'</td></tr>');	
+		}			
+	}
+
+	function addPaging(){
+		$("#paging-div").empty();
+		if(roleArr.length >13){
+			var poiLength = (roleArr.length/13);
+			$("#paging-div").append('<a onclick="clickAFun(1)">首页</a>');
+			for(var i = 0 ; i < poiLength ; i++){
+				$("#paging-div").append('<a onclick="clickAFun('+(i+1)+')" id="a'+(i+1)+'">'+(i+1)+'</a>');
+				if(i == 0){
+					$("#a1").addClass("selecting")
+				}
+			}
+			$("#paging-div").append('<a onclick="clickAFun('+(Math.ceil(poiLength))+')">尾页</a>');
+		}
+	}
+
+	function clickAFun(num){
+		if($("#a"+num).hasClass("selecting")){
+
+		}
+		else{
+			$("#paging-div a").removeClass("selecting");
+			$("#a"+num).addClass("selecting");
+			clearTable();
+			for(var i=(num-1)*13; i<num*13 || i<roleArr.length; i++){
+				addToArr(roleArr[i]);
+			}
+		}
+		
+	}
+
+	function trSelectFun(objId){
+		if(selectRole != null){
+			$("#"+selectRole.roleid).removeClass("selecteding");
+		}
+		
+		for (var i = 0;i < roleArr.length;i++) {
+			if(roleArr[i].roleid == objId){
+				selectRole = roleArr[i];
+				$('#'+objId).addClass("selecteding");
+				break;
+			}
+		}
+	}
+
+	function addFun(){
+		$("#edit-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#edit-name-input").val("");
+		$("#edit-rmk-input").val("");
+
+		$("#edit-top-div p").text("添加角色");
+	}
+
+	function editFun(){
+		$("#edit-top-div p").text("修改角色");
+		$("#edit-div").css("display","block");
+		$("#shade-div").css("display","block");
+		$("#edit-name-input").val(selectRole.rolename);
+		$("#edit-rmk-input").val(selectRole.remark);
+
+	}
+
+	function submitAddFun(){
+		if(validator()){
+			item = {
+				id : newGuid(),
+				name : $("#edit-name-input").val(),
+				rmk : $("#edit-rmk-input").val(),
+			};
+			if($("#edit-top-div p").text() == "添加角色"){
+				clickAddFun(item);
+			}
+			else{
+				item.id = selectRole.roleid;
+				clickEditFun(item);
+			}
+		}
+	}
+
+	/**点击确认按钮添加兴趣点**/
+	function clickAddFun(item){
+		var xmlStr = RWRoleAdd(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){	
+					item.roleid = item.id;
+					item.rolename = item.name;
+					item.remark = item.rmk;				
+					addToArr(item);
+					roleArr.push(item);
+					alert("添加成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+		});
+	}
+
+	function clickEditFun(item){
+		var xmlStr = RWRoleEdit(sessionId,ver,item);
+		$.ajax({
+			url:requrl,
+			type:"POST",
+			dataType:"json",
+			data:xmlStr,
+			success:function(data) {
+				var jsonObj = eval(data);
+				if(jsonObj.result == "0"){
+					alert("修改成功");
+				}
+				else{
+					alert(jsonObj.error);
+				}
+				closeWin();
+			}
+		});
+	}
+
+	function validator(){
+		if($("#edit-name-input").val() == ""){
+			alert("请输入名称");
+			return;
+		}
+		return true;
+	}
+
+	function closeWin(){
+		$("#edit-div").css("display","none");
+		$("#shade-div").css("display","none");
+	}
+</script>
+</body>
+</html>
